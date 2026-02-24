@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pa Corner — POS Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --surface: #1a1a1c;
+    --surface2: #242428;
+    --border: #2e2e34;
+    --green: #00e676;
+    --amber: #ffab00;
+    --red: #ff5252;
+    --blue: #448aff;
+    --text: #f0f0f0;
+    --muted: #888;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 12px;
+    font-family: var(--display);
+    gap: 10px;
+  }
+
+  .user-topbar {
+    width: 360px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: var(--mono);
+  }
+  .user-info { display: flex; align-items: center; gap: 8px; }
+  .user-avatar {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--green), #00897b);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: bold; color: #000; flex-shrink: 0;
+  }
+  .user-name { font-size: 12px; color: var(--text); }
+  .user-role { font-size: 10px; color: var(--muted); }
+  .btn-logout {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  .phone {
+    width: 360px; height: 680px; background: var(--bg);
+    border: 2px solid #2a2a30; border-radius: 28px; display: flex; flex-direction: column;
+    overflow: hidden; box-shadow: 0 0 60px rgba(0,230,118,0.06), 0 30px 80px rgba(0,0,0,0.8); position: relative;
+  }
+
+  .header {
+    background: var(--surface); padding: 12px 18px; display: flex;
+    justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .header-title { font-size: 20px; font-weight: 900; letter-spacing: 2px; color: var(--green); text-transform: uppercase; }
+  .header-sub { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: 1px; margin-top: 1px; }
+  .time-display { font-family: var(--mono); font-size: 12px; color: var(--amber); }
+  .terminal-badge {
+    font-family: var(--mono); font-size: 10px; color: var(--blue);
+    background: rgba(68,138,255,0.12); border: 1px solid rgba(68,138,255,0.3);
+    border-radius: 3px; padding: 2px 6px; margin-top: 3px; display: inline-block;
+  }
+
+  .nav {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .nav button {
+    padding: 10px 4px; border: none; background: transparent; color: var(--muted);
+    font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;
+  }
+  .nav button.active { color: var(--green); border-bottom-color: var(--green); }
+  .nav button:hover:not(.active) { color: var(--text); }
+
+  .screen { flex: 1; overflow-y: auto; display: none; }
+  .screen.active { display: flex; flex-direction: column; }
+  .screen::-webkit-scrollbar { width: 3px; }
+  .screen::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .section-title {
+    font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 2px;
+    text-transform: uppercase; padding: 11px 16px 7px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+
+  .setup-form {
+    padding: 14px; background: var(--surface); margin: 12px;
+    border-radius: 10px; border: 1px solid var(--border); flex-shrink: 0;
+  }
+  .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .form-field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .form-field label { font-size: 10px; font-family: var(--mono); color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .form-field input {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 10px; border-radius: 6px; font-family: var(--mono); font-size: 14px;
+    width: 100%; outline: none; transition: border-color 0.2s;
+  }
+  .form-field input:focus { border-color: var(--green); }
+  .btn-add {
+    width: 100%; background: var(--green); color: #000; border: none; padding: 10px;
+    border-radius: 6px; font-family: var(--display); font-weight: 700; font-size: 14px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: opacity 0.2s;
+  }
+  .btn-add:hover { opacity: 0.85; }
+
+  .menu-list { flex: 1; overflow-y: auto; }
+  .menu-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s;
+  }
+  .menu-item:hover { background: var(--surface); }
+  .menu-item-name { font-weight: 700; font-size: 15px; color: var(--text); }
+  .menu-item-price { font-family: var(--mono); color: var(--green); font-size: 14px; }
+  .btn-delete {
+    background: transparent; border: 1px solid var(--red); color: var(--red);
+    width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+    flex-shrink: 0; margin-left: 10px;
+  }
+  .btn-delete:hover { background: var(--red); color: #fff; }
+  .empty-state { text-align: center; padding: 30px 20px; color: var(--muted); font-size: 13px; font-family: var(--mono); line-height: 1.8; }
+
+  .order-list { flex: 1; overflow-y: auto; }
+  .order-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+  }
+  .order-item-info { flex: 1; }
+  .order-item-name { font-weight: 700; font-size: 15px; color: var(--text); }
+  .order-item-price { font-family: var(--mono); color: var(--muted); font-size: 12px; margin-top: 1px; }
+  .qty-controls { display: flex; align-items: center; gap: 8px; }
+  .qty-btn {
+    width: 28px; height: 28px; border-radius: 6px; border: none; font-size: 16px; font-weight: bold;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .qty-btn.minus { background: var(--surface2); color: var(--red); }
+  .qty-btn.plus { background: var(--green); color: #000; }
+  .qty-btn:hover { opacity: 0.8; }
+  .qty-display { font-family: var(--mono); font-size: 15px; color: var(--text); min-width: 22px; text-align: center; }
+  .item-subtotal { font-family: var(--mono); font-size: 13px; color: var(--amber); min-width: 55px; text-align: right; }
+
+  .receipt-wrap { flex: 1; overflow-y: auto; padding: 12px; }
+  .receipt-paper { background: #fff; color: #111; border-radius: 4px; padding: 16px; font-family: var(--mono); font-size: 12px; }
+  .receipt-header { text-align: center; margin-bottom: 12px; border-bottom: 1px dashed #aaa; padding-bottom: 10px; }
+  .receipt-title { font-size: 18px; font-family: var(--display); font-weight: 900; letter-spacing: 2px; }
+  .receipt-date { font-size: 11px; color: #666; margin-top: 4px; }
+  .receipt-staff { font-size: 10px; color: #888; margin-top: 2px; }
+  .receipt-row { display: flex; justify-content: space-between; padding: 3px 0; }
+  .receipt-row.bold { font-weight: bold; border-top: 1px dashed #aaa; margin-top: 8px; padding-top: 8px; font-size: 14px; }
+  .receipt-empty { text-align: center; color: #aaa; padding: 20px 0; }
+  .receipt-footer { text-align: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed #aaa; font-size: 11px; color: #777; }
+
+  .footer { background: var(--surface); border-top: 1px solid var(--border); padding: 10px 16px; flex-shrink: 0; }
+  .footer-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .footer-total { display: flex; justify-content: space-between; align-items: center; }
+  .total-label { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .total-amount { font-size: 26px; font-weight: 900; color: var(--green); letter-spacing: 1px; }
+  .btn-checkout {
+    background: var(--amber); color: #000; border: none; padding: 10px 18px;
+    border-radius: 6px; font-family: var(--display); font-weight: 700; font-size: 13px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: opacity 0.2s;
+  }
+  .btn-checkout:hover { opacity: 0.85; }
+  .btn-checkout:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .toast {
+    position: absolute; top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: var(--green); color: #000; padding: 8px 18px; border-radius: 20px;
+    font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: 1px;
+    opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; white-space: nowrap; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  #auth-gate {
+    position: fixed; inset: 0; background: #07080a;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 14px; color: var(--muted);
+    z-index: 9999; flex-direction: column; gap: 16px;
+  }
+  .gate-spinner {
+    width: 32px; height: 32px; border: 2px solid var(--border);
+    border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="auth-gate">
+  <div class="gate-spinner"></div>
+  <span>Checking session...</span>
+</div>
+
+<div class="user-topbar" id="user-topbar" style="display:none;">
+  <div class="user-info">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <div>
+      <div class="user-name" id="user-name-disp">Loading...</div>
+      <div class="user-role">POS OPERATOR</div>
+    </div>
+  </div>
+  <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+</div>
+
+<div class="phone" id="phone-wrap" style="display:none;">
+  <div class="header">
+    <div>
+      <div class="header-title">PA CORNER</div>
+      <div class="header-sub">BAR POINT OF SALE</div>
+    </div>
+    <div style="text-align:right">
+      <div class="time-display" id="clock">--:--</div>
+      <div class="terminal-badge" id="term-badge">TRM-??</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="btn-setup" class="active" onclick="showScreen('setup')">⚙ Menu</button>
+    <button id="btn-order" onclick="showScreen('order')">🍺 Order</button>
+    <button id="btn-receipt" onclick="showScreen('receipt')">🧾 Receipt</button>
+  </div>
+
+  <div id="screen-setup" class="screen active">
+    <div class="section-title">// Add Item to Menu</div>
+    <div class="setup-form">
+      <div class="form-row">
+        <div class="form-field" style="flex:2">
+          <label>Item Name</label>
+          <input type="text" id="item-name" placeholder="e.g. Mosi" />
+        </div>
+        <div class="form-field" style="flex:1">
+          <label>Price (K)</label>
+          <input type="number" id="item-price" placeholder="0" min="0" />
+        </div>
+      </div>
+      <button class="btn-add" onclick="addItem()">+ Add to Menu</button>
+    </div>
+    <div class="section-title">// Current Menu (<span id="menu-count">0</span> items)</div>
+    <div class="menu-list" id="menu-list">
+      <div class="empty-state">No items yet.<br>Add your first item above.</div>
+    </div>
+  </div>
+
+  <div id="screen-order" class="screen">
+    <div class="section-title">// Tap + / − to build order</div>
+    <div class="order-list" id="order-list">
+      <div class="empty-state">Set up your menu first.</div>
+    </div>
+  </div>
+
+  <div id="screen-receipt" class="screen">
+    <div class="receipt-wrap">
+      <div class="receipt-paper">
+        <div class="receipt-header">
+          <div class="receipt-title">PA CORNER</div>
+          <div class="receipt-date" id="receipt-date"></div>
+          <div class="receipt-staff" id="receipt-staff"></div>
+        </div>
+        <div id="receipt-lines"><div class="receipt-empty">No items ordered.</div></div>
+        <div class="receipt-footer">THANK YOU — COME AGAIN!</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-top">
+      <span id="item-count">0 items</span>
+    </div>
+    <div class="footer-total">
+      <div>
+        <div class="total-label">Total Due</div>
+        <div class="total-amount" id="total-val">K0.00</div>
+      </div>
+      <button class="btn-checkout" id="checkout-btn" onclick="checkout()" disabled>✓ Paid &amp; Clear</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  let session = null;
+  try { session = JSON.parse(sessionStorage.getItem('pa-session')); } catch(e) {}
+
+  if (!session || session.role !== 'pos') {
+    document.querySelector('#auth-gate span').textContent = 'Access denied. Redirecting...';
+    setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+  } else {
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('user-topbar').style.display = 'flex';
+    document.getElementById('phone-wrap').style.display = 'flex';
+
+    const initials = (session.fname[0] + session.lname[0]).toUpperCase();
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('user-name-disp').textContent = session.fname + ' ' + session.lname;
+
+    const tidKey = 'pa-terminal-id-' + session.username;
+    let terminalId = localStorage.getItem(tidKey);
+    if (!terminalId) {
+      terminalId = 'TRM-' + session.username.substr(0,3).toUpperCase() + '-' + Math.random().toString(36).substr(2,3).toUpperCase();
+      localStorage.setItem(tidKey, terminalId);
+    }
+    document.getElementById('term-badge').textContent = terminalId;
+
+    let menu = JSON.parse(localStorage.getItem('pa-menu-' + terminalId) || '[]');
+    let order = {};
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+    updateClock(); setInterval(updateClock, 1000);
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById('screen-' + name).classList.add('active');
+      document.getElementById('btn-' + name).classList.add('active');
+      if (name === 'order') renderOrderScreen();
+      if (name === 'receipt') renderReceipt();
+    }
+
+    function broadcastState() {
+      const terminals = JSON.parse(localStorage.getItem('pa-terminals') || '{}');
+      let total = 0, count = 0; const items = [];
+      Object.keys(order).forEach(i => {
+        const qty = order[i]; const item = menu[parseInt(i)]; const sub = qty * item.price;
+        total += sub; count += qty; items.push({ name: item.name, price: item.price, qty, sub });
+      });
+      terminals[terminalId] = {
+        id: terminalId, operator: session.fname + ' ' + session.lname,
+        username: session.username, total, count, items, menu, lastSeen: Date.now()
+      };
+      localStorage.setItem('pa-terminals', JSON.stringify(terminals));
+      localStorage.setItem('pa-ping', Date.now().toString());
+    }
+
+    function addItem() {
+      const name = document.getElementById('item-name').value.trim();
+      const price = parseFloat(document.getElementById('item-price').value);
+      if (!name || isNaN(price) || price < 0) { showToast('Enter name & price!'); return; }
+      menu.push({ name, price });
+      localStorage.setItem('pa-menu-' + terminalId, JSON.stringify(menu));
+      document.getElementById('item-name').value = '';
+      document.getElementById('item-price').value = '';
+      renderMenuList(); broadcastState(); showToast('✓ ' + name + ' added');
+    }
+
+    function deleteItem(i) {
+      if (order[i]) delete order[i];
+      const newOrder = {};
+      Object.keys(order).forEach(k => {
+        const ki = parseInt(k);
+        if (ki > i) newOrder[ki-1] = order[k];
+        else if (ki < i) newOrder[ki] = order[k];
+      });
+      order = newOrder;
+      menu.splice(i, 1);
+      localStorage.setItem('pa-menu-' + terminalId, JSON.stringify(menu));
+      renderMenuList(); updateFooter(); broadcastState();
+    }
+
+    function renderMenuList() {
+      const list = document.getElementById('menu-list');
+      document.getElementById('menu-count').textContent = menu.length;
+      if (!menu.length) { list.innerHTML = '<div class="empty-state">No items yet.<br>Add your first item above.</div>'; return; }
+      list.innerHTML = menu.map((item, i) => `
+        <div class="menu-item">
+          <div><div class="menu-item-name">${item.name}</div></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="menu-item-price">K${item.price.toFixed(2)}</span>
+            <button class="btn-delete" onclick="deleteItem(${i})">×</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function renderOrderScreen() {
+      const list = document.getElementById('order-list');
+      if (!menu.length) { list.innerHTML = '<div class="empty-state">Set up your menu first.</div>'; return; }
+      list.innerHTML = menu.map((item, i) => {
+        const qty = order[i] || 0;
+        return `<div class="order-item">
+          <div class="order-item-info">
+            <div class="order-item-name">${item.name}</div>
+            <div class="order-item-price">K${item.price.toFixed(2)} each</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn minus" onclick="changeQty(${i},-1)">−</button>
+            <div class="qty-display">${qty}</div>
+            <button class="qty-btn plus" onclick="changeQty(${i},1)">+</button>
+            <div class="item-subtotal">${qty > 0 ? 'K'+(qty*item.price).toFixed(2) : '—'}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function changeQty(i, delta) {
+      const newQty = Math.max(0, (order[i] || 0) + delta);
+      if (newQty === 0) delete order[i]; else order[i] = newQty;
+      renderOrderScreen(); updateFooter(); broadcastState();
+    }
+
+    function updateFooter() {
+      let total = 0, count = 0;
+      Object.keys(order).forEach(i => { total += order[i] * menu[i].price; count += order[i]; });
+      document.getElementById('total-val').textContent = 'K' + total.toFixed(2);
+      document.getElementById('item-count').textContent = count === 0 ? '0 items' : `${count} item${count !== 1 ? 's' : ''}`;
+      document.getElementById('checkout-btn').disabled = count === 0;
+    }
+
+    function renderReceipt() {
+      const now = new Date();
+      document.getElementById('receipt-date').textContent =
+        now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) +
+        ' · ' + now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+      document.getElementById('receipt-staff').textContent = 'Staff: ' + session.fname + ' ' + session.lname;
+      const keys = Object.keys(order).filter(k => order[k] > 0);
+      if (!keys.length) { document.getElementById('receipt-lines').innerHTML = '<div class="receipt-empty">No items ordered.</div>'; return; }
+      let total = 0, html = '';
+      keys.forEach(k => {
+        const item = menu[k]; const qty = order[k]; const sub = qty * item.price; total += sub;
+        html += `<div class="receipt-row"><span>${item.name} x${qty}</span><span>K${sub.toFixed(2)}</span></div>`;
+      });
+      html += `<div class="receipt-row bold"><span>TOTAL</span><span>K${total.toFixed(2)}</span></div>`;
+      document.getElementById('receipt-lines').innerHTML = html;
+    }
+
+    function checkout() {
+      if (!Object.keys(order).length) return;
+      const total = Object.keys(order).reduce((s,i) => s + order[i] * menu[i].price, 0);
+      const history = JSON.parse(localStorage.getItem('pa-history') || '[]');
+      history.unshift({
+        terminal: terminalId, operator: session.fname + ' ' + session.lname,
+        total, items: Object.keys(order).map(i => ({ name: menu[i].name, qty: order[i], sub: order[i]*menu[i].price })),
+        time: Date.now()
+      });
+      if (history.length > 200) history.pop();
+      localStorage.setItem('pa-history', JSON.stringify(history));
+      showToast('✓ Paid K' + total.toFixed(2) + '!');
+      order = {}; renderOrderScreen(); updateFooter(); broadcastState();
+    }
+
+    function logout() {
+      const terminals = JSON.parse(localStorage.getItem('pa-terminals') || '{}');
+      if (terminals[terminalId]) { terminals[terminalId].lastSeen = 0; localStorage.setItem('pa-terminals', JSON.stringify(terminals)); }
+      sessionStorage.removeItem('pa-session');
+      window.location.href = 'index.html';
+    }
+
+    renderMenuList(); updateFooter(); broadcastState();
+    setInterval(broadcastState, 10000);
+  }
+</script>
+</body>
+</html>
