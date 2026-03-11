@@ -285,14 +285,23 @@
       <div class="user-role">POS OPERATOR</div>
     </div>
   </div>
-  <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="text-align:right;">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;">MY SHIFT TOTAL</div>
+      <div style="font-family:var(--display);font-size:20px;font-weight:900;color:var(--green);line-height:1;" id="topbar-shift-total">K0.00</div>
+    </div>
+    <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+  </div>
 </div>
 
 <div class="phone" id="phone-wrap" style="display:none;">
   <div class="header">
     <div>
       <div class="header-title">PA CORNER</div>
-      <div class="header-sub">BAR POINT OF SALE</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:1px;">
+        <div class="header-sub" style="color:var(--muted);">OPERATOR:</div>
+        <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--text);letter-spacing:1px;" id="header-operator-name">—</div>
+      </div>
     </div>
     <div style="text-align:right">
       <div class="time-display" id="clock">--:--</div>
@@ -588,6 +597,7 @@ if (!session || session.role !== 'pos') {
   const initials = (session.fname[0] + session.lname[0]).toUpperCase();
   document.getElementById('user-avatar').textContent = initials;
   document.getElementById('user-name-disp').textContent = session.fname + ' ' + session.lname;
+  document.getElementById('header-operator-name').textContent = session.fname + ' ' + session.lname;
 
   const tidKey = 'pa-terminal-id-' + session.username;
   let terminalId = localStorage.getItem(tidKey);
@@ -817,6 +827,19 @@ if (!session || session.role !== 'pos') {
     document.getElementById('order-summary').textContent = summaryItems.join(' · ');
   }
 
+  function updateShiftTotal() {
+    // Sum today's checkouts for this operator from pa-history
+    const todayStr = (() => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+    let history = []; try { history = JSON.parse(localStorage.getItem('pa-history')||'[]'); } catch(e){}
+    const myTotal = history.filter(r => {
+      const rd = new Date(r.time);
+      const rs = rd.getFullYear()+'-'+String(rd.getMonth()+1).padStart(2,'0')+'-'+String(rd.getDate()).padStart(2,'0');
+      return rs === todayStr && r.operator === (session.fname + ' ' + session.lname);
+    }).reduce((s,r) => s+(r.total||0), 0);
+    const el = document.getElementById('topbar-shift-total');
+    if (el) el.textContent = 'K' + myTotal.toFixed(2);
+  }
+
   // ── RECEIPT ──
   function renderReceipt() {
     const now = new Date();
@@ -898,7 +921,7 @@ if (!session || session.role !== 'pos') {
     localStorage.setItem(_dKey, JSON.stringify(_dayRecs));
     showToast('✓ Paid K' + total.toFixed(2) + '!');
     order = {};
-    renderOrderScreen(); updateFooter(); broadcastState();
+    renderOrderScreen(); updateFooter(); broadcastState(); updateShiftTotal();
   }
 
   function logout() {
@@ -910,6 +933,8 @@ if (!session || session.role !== 'pos') {
 
   // ── INIT ──
   renderMenuList();
+  updateShiftTotal();
+  setInterval(updateShiftTotal, 60000);
   updateFooter();
   broadcastState();
   setInterval(broadcastState, 10000);
