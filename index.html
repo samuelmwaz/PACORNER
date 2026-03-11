@@ -3,380 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pa Corner — Login</title>
+<title>Pa Corner — Staff Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --red: #e8192c;
-    --green: #1a7a3c;
-    --gold: #f5c518;
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --border: #2a2a2a;
-    --text: #f0ede8;
-    --muted: #888;
-    --mono: 'Share Tech Mono', monospace;
-    --display: 'Bebas Neue', sans-serif;
-    --body: 'Barlow Condensed', sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red:#e8192c; --red-dim:rgba(232,25,44,0.1);
+  --green:#1a7a3c; --amber:#ffab00;
+  --bg:#08080a; --surface:#121214; --surface2:#1a1a1e;
+  --border:#222228; --border2:#2e2e3a;
+  --text:#f0ede8; --muted:#606068;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-family:var(--body);padding:20px;
+  position:relative;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 15% 15%,rgba(232,25,44,0.08) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 40% at 85% 85%,rgba(26,122,60,0.08) 0%,transparent 60%);
+}
+.wrap{width:100%;max-width:460px;animation:up 0.5s ease both;}
+@keyframes up{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
 
-  body {
-    background: var(--bg);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--body);
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-  }
+.brand{text-align:center;margin-bottom:22px;}
+.brand-pa{display:inline-block;background:var(--red);color:#fff;font-family:var(--display);font-size:16px;letter-spacing:5px;padding:3px 18px;border-radius:50px;margin-bottom:3px;}
+.brand-name{font-family:var(--display);font-size:64px;letter-spacing:8px;line-height:1;color:var(--red);display:block;}
+.brand-orig{font-family:var(--mono);font-size:9px;letter-spacing:5px;color:var(--muted);}
+.brand-tag{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--green);margin-top:8px;display:block;}
 
-  /* Background texture */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 40px,
-        rgba(255,255,255,0.01) 40px,
-        rgba(255,255,255,0.01) 41px
-      );
-    pointer-events: none;
-  }
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px 22px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--amber),#1a7a3c);}
 
-  /* Decorative circles */
-  .deco {
-    position: fixed;
-    border-radius: 50%;
-    pointer-events: none;
-  }
-  .deco-1 {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(232,25,44,0.12) 0%, transparent 70%);
-    top: -200px; left: -200px;
-  }
-  .deco-2 {
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(26,122,60,0.15) 0%, transparent 70%);
-    bottom: -150px; right: -150px;
-  }
+.card-title{font-family:var(--display);font-size:24px;letter-spacing:3px;color:var(--text);margin-bottom:2px;}
+.card-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:18px;}
 
-  .login-wrap {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    animation: fadeUp 0.6s ease both;
-  }
+/* role tabs */
+.role-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.role-tab{
+  flex:1;padding:9px;border:1px solid var(--border2);background:transparent;
+  color:var(--muted);border-radius:8px;font-family:var(--body);font-weight:700;
+  font-size:13px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;
+}
+.role-tab.active{border-color:var(--red);background:var(--red-dim);color:#ff6060;}
+.role-tab.a-tab.active{border-color:var(--amber);background:rgba(255,171,0,0.1);color:var(--amber);}
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+/* user grid */
+.picker-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+.user-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;max-height:250px;overflow-y:auto;padding-right:2px;}
+.user-grid::-webkit-scrollbar{width:3px;}
+.user-grid::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.user-card{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;cursor:pointer;transition:all 0.15s;
+  display:flex;align-items:center;gap:10px;
+}
+.user-card:hover{border-color:var(--border2);background:#1e1e24;}
+.user-card.sel{border-color:var(--red);background:var(--red-dim);}
+.user-card.sel.asel{border-color:var(--amber);background:rgba(255,171,0,0.08);}
+.u-av{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:#fff;
+}
+.u-pos-av{background:linear-gradient(135deg,#e8192c,#ff6b35);}
+.u-adm-av{background:linear-gradient(135deg,#ffab00,#ff6d00);}
+.u-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.2;}
+.u-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
 
-  /* Brand header */
-  .brand {
-    text-align: center;
-    margin-bottom: 8px;
-    position: relative;
-  }
+/* selected user banner */
+.sel-banner{
+  background:rgba(232,25,44,0.07);border:1px solid rgba(232,25,44,0.2);
+  border-radius:8px;padding:10px 14px;margin-bottom:14px;
+  display:none;align-items:center;gap:10px;
+}
+.sel-banner.show{display:flex;}
+.sel-banner-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.sel-banner-name{font-size:15px;font-weight:700;color:var(--text);}
+.sel-banner-hint{font-family:var(--mono);font-size:10px;color:var(--muted);}
 
-  .brand-pa {
-    display: inline-block;
-    background: var(--red);
-    color: #fff;
-    font-family: var(--display);
-    font-size: 22px;
-    letter-spacing: 4px;
-    padding: 4px 18px;
-    border-radius: 50px;
-    margin-bottom: 6px;
-  }
+/* field */
+.field{margin-bottom:14px;}
+.field label{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.field input{
+  width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);
+  padding:12px 14px;border-radius:8px;font-family:var(--mono);font-size:15px;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.field input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
 
-  .brand-name {
-    font-family: var(--display);
-    font-size: 72px;
-    letter-spacing: 10px;
-    line-height: 1;
-    background: linear-gradient(135deg, var(--red) 0%, #ff6b35 50%, var(--red) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-transform: uppercase;
-  }
+.err{
+  background:rgba(232,25,44,0.08);border:1px solid rgba(232,25,44,0.25);
+  color:#ff6b6b;font-family:var(--mono);font-size:11px;
+  padding:9px 14px;border-radius:6px;margin-bottom:12px;display:none;letter-spacing:0.5px;
+}
+.err.show{display:block;}
 
-  .brand-original {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 6px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-top: -4px;
-  }
+.btn-login{
+  width:100%;background:var(--red);color:#fff;border:none;padding:14px;
+  border-radius:8px;font-family:var(--display);font-size:20px;letter-spacing:3px;
+  cursor:pointer;text-transform:uppercase;transition:all 0.2s;
+}
+.btn-login:hover{opacity:0.88;transform:translateY(-1px);box-shadow:0 6px 20px rgba(232,25,44,0.28);}
+.btn-login:active{transform:translateY(0);}
 
-  .brand-tagline {
-    font-size: 13px;
-    color: var(--green);
-    font-family: var(--mono);
-    letter-spacing: 2px;
-    margin-top: 10px;
-    text-transform: uppercase;
-  }
-
-  /* Divider */
-  .divider {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0;
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--border), transparent);
-  }
-  .divider span {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-
-  /* Login card */
-  .card {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 24px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--red), var(--gold), var(--green));
-  }
-
-  .card-title {
-    font-family: var(--display);
-    font-size: 28px;
-    letter-spacing: 3px;
-    color: var(--text);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .card-sub {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    margin-bottom: 22px;
-  }
-
-  .field {
-    margin-bottom: 14px;
-  }
-
-  .field label {
-    display: block;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .field input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-family: var(--mono);
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  .field input:focus {
-    border-color: var(--red);
-    box-shadow: 0 0 0 3px rgba(232,25,44,0.1);
-  }
-
-  .role-select {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-
-  .role-btn {
-    padding: 10px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    border-radius: 8px;
-    font-family: var(--body);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-  }
-
-  .role-btn.selected {
-    border-color: var(--green);
-    background: rgba(26,122,60,0.15);
-    color: #4caf78;
-  }
-
-  .role-btn:hover:not(.selected) {
-    border-color: #444;
-    color: var(--text);
-  }
-
-  .btn-login {
-    width: 100%;
-    background: var(--red);
-    color: #fff;
-    border: none;
-    padding: 14px;
-    border-radius: 8px;
-    font-family: var(--display);
-    font-size: 20px;
-    letter-spacing: 3px;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn-login::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
-  }
-
-  .btn-login:hover {
-    background: #c0111f;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(232,25,44,0.35);
-  }
-
-  .btn-login:active { transform: translateY(0); }
-
-  .error-msg {
-    background: rgba(232,25,44,0.1);
-    border: 1px solid rgba(232,25,44,0.3);
-    color: #ff6b6b;
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 10px 14px;
-    border-radius: 6px;
-    margin-bottom: 14px;
-    display: none;
-    letter-spacing: 0.5px;
-  }
-
-  .error-msg.show { display: block; }
-
-  /* Demo accounts */
-  .demo-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 16px;
-  }
-
-  .demo-chip {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 10px;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: left;
-  }
-
-  .demo-chip:hover {
-    border-color: #444;
-    background: rgba(255,255,255,0.07);
-  }
-
-  .demo-chip-role {
-    font-size: 9px;
-    font-family: var(--mono);
-    color: var(--muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .demo-chip-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-    margin-top: 2px;
-  }
-
-  /* Footer */
-  .footer-text {
-    margin-top: 24px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 1.5px;
-    text-align: center;
-    opacity: 0.6;
-  }
+.footer-text{margin-top:18px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;text-align:center;opacity:0.45;}
 </style>
 </head>
 <body>
-
-<div class="deco deco-1"></div>
-<div class="deco deco-2"></div>
-
-<div class="login-wrap">
-
+<div class="wrap">
   <div class="brand">
     <div class="brand-pa">PA</div>
-    <div class="brand-name">Corner</div>
-    <div class="brand-original">— Original —</div>
-    <div class="brand-tagline">Bar Point of Sale System</div>
+    <span class="brand-name">Corner</span>
+    <div class="brand-orig">— Original —</div>
+    <span class="brand-tag">// Staff Login Portal</span>
   </div>
-
-  <div class="divider"><span>Staff Login</span></div>
 
   <div class="card">
     <div class="card-title">Sign In</div>
-    <div class="card-sub">// Enter your credentials to continue</div>
+    <div class="card-sub">// Select your name, then enter your password</div>
 
-    <div class="error-msg" id="error-msg">Invalid username or password.</div>
+    <div class="err" id="err">Please select your account first.</div>
 
-    <div class="field">
-      <label>Username</label>
-      <input type="text" id="username" placeholder="your.name" autocomplete="username" />
+    <!-- Role tabs -->
+    <div class="role-tabs">
+      <button class="role-tab active" id="tab-pos" onclick="setTab('pos')">🍺 POS Staff</button>
+      <button class="role-tab a-tab" id="tab-admin" onclick="setTab('admin')">📊 Management</button>
+    </div>
+
+    <!-- User picker -->
+    <div class="picker-label" id="pick-label">Select your account</div>
+    <div class="user-grid" id="user-grid"></div>
+
+    <!-- Selected banner -->
+    <div class="sel-banner" id="sel-banner">
+      <div class="sel-banner-av u-pos-av" id="sb-av">?</div>
+      <div>
+        <div class="sel-banner-name" id="sb-name">—</div>
+        <div class="sel-banner-hint">Enter your password below</div>
+      </div>
     </div>
 
     <div class="field">
@@ -384,82 +153,96 @@
       <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
     </div>
 
-    <div style="margin-bottom:14px;">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Role</div>
-      <div class="role-select">
-        <button class="role-btn selected" id="role-pos" onclick="selectRole('pos')">🍺 POS Staff</button>
-        <button class="role-btn" id="role-admin" onclick="selectRole('admin')">📊 Manager</button>
-      </div>
-    </div>
-
     <button class="btn-login" onclick="doLogin()">Enter System</button>
-
-    <div class="divider" style="margin:18px 0 10px;"><span>Quick Access</span></div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-align:center;margin-bottom:10px;">Click to auto-fill demo account</div>
-    <div class="demo-grid">
-      <div class="demo-chip" onclick="fillDemo('barman','pass123','pos')">
-        <div class="demo-chip-role">POS Operator</div>
-        <div class="demo-chip-name">Barman</div>
-      </div>
-      <div class="demo-chip" onclick="fillDemo('waitress','pass123','pos')">
-        <div class="demo-chip-role">POS Operator</div>
-        <div class="demo-chip-name">Waitress</div>
-      </div>
-      <div class="demo-chip" onclick="fillDemo('manager','admin123','admin')">
-        <div class="demo-chip-role">Manager</div>
-        <div class="demo-chip-name">Manager</div>
-      </div>
-      <div class="demo-chip" onclick="fillDemo('owner','owner999','admin')">
-        <div class="demo-chip-role">Owner</div>
-        <div class="demo-chip-name">Pa Corner</div>
-      </div>
-    </div>
   </div>
 
   <div class="footer-text">Plot 87A Great East Road, Silverest – Chongwe &nbsp;·&nbsp; +260 972 535 444</div>
-
 </div>
 
 <script>
-  let selectedRole = 'pos';
+// ── ALL STAFF ACCOUNTS ─────────────────────────────────────────────────────
+const USERS = [
+  // POS Staff (6 users)
+  { username:'chanda',  password:'chanda123',  role:'pos',   fname:'Chanda',  lname:'Mwewa'  },
+  { username:'mulenga', password:'mulenga123', role:'pos',   fname:'Mulenga', lname:'Banda'  },
+  { username:'bwalya',  password:'bwalya123',  role:'pos',   fname:'Bwalya',  lname:'Tembo'  },
+  { username:'mutale',  password:'mutale123',  role:'pos',   fname:'Mutale',  lname:'Phiri'  },
+  { username:'jane',    password:'jane123',    role:'pos',   fname:'Jane',    lname:'Mwale'  },
+  { username:'brian',   password:'pass123',    role:'pos',   fname:'Brian',   lname:'Mwansa' },
+  // Management (4 admins)
+  { username:'frank',   password:'admin123',   role:'admin', fname:'Frank',   lname:'Phiri'  },
+  { username:'owner',   password:'owner999',   role:'admin', fname:'Pa',      lname:'Corner' },
+  { username:'grace',   password:'super456',   role:'admin', fname:'Grace',   lname:'Lungu'  },
+  { username:'kelvin',  password:'deputy789',  role:'admin', fname:'Kelvin',  lname:'Zimba'  },
+];
 
-  const USERS = [
-    { username: 'barman',   password: 'pass123',  role: 'pos',   fname: 'Bar',     lname: 'Man' },
-    { username: 'waitress', password: 'pass123',  role: 'pos',   fname: 'Jane',    lname: 'Mwale' },
-    { username: 'manager',  password: 'admin123', role: 'admin', fname: 'Manager', lname: 'Pa' },
-    { username: 'owner',    password: 'owner999', role: 'admin', fname: 'Pa',      lname: 'Corner' },
-  ];
+let selectedRole = 'pos';
+let selectedUser = null;
 
-  function selectRole(r) {
-    selectedRole = r;
-    document.getElementById('role-pos').classList.toggle('selected', r === 'pos');
-    document.getElementById('role-admin').classList.toggle('selected', r === 'admin');
+function setTab(role) {
+  selectedRole = role;
+  selectedUser = null;
+  document.getElementById('tab-pos').classList.toggle('active', role==='pos');
+  document.getElementById('tab-admin').classList.toggle('active', role==='admin');
+  document.getElementById('sel-banner').classList.remove('show');
+  document.getElementById('password').value = '';
+  document.getElementById('err').classList.remove('show');
+  renderUsers();
+}
+
+function renderUsers() {
+  const list = USERS.filter(u => u.role === selectedRole);
+  document.getElementById('user-grid').innerHTML = list.map(u => {
+    const init = (u.fname[0]+u.lname[0]).toUpperCase();
+    const isAdm = u.role === 'admin';
+    return `<div class="user-card${isAdm?' asel':''}" id="uc-${u.username}" onclick="pickUser('${u.username}')">
+      <div class="u-av ${isAdm?'u-adm-av':'u-pos-av'}">${init}</div>
+      <div>
+        <div class="u-name">${u.fname} ${u.lname}</div>
+        <div class="u-sub">${isAdm?'MANAGEMENT':'POS STAFF'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pickUser(username) {
+  selectedUser = username;
+  document.querySelectorAll('.user-card').forEach(c => c.classList.remove('sel'));
+  const card = document.getElementById('uc-' + username);
+  if (card) card.classList.add('sel');
+  const u = USERS.find(x => x.username === username);
+  if (u) {
+    const init = (u.fname[0]+u.lname[0]).toUpperCase();
+    const isAdm = u.role === 'admin';
+    document.getElementById('sb-av').textContent = init;
+    document.getElementById('sb-av').className = 'sel-banner-av ' + (isAdm ? 'u-adm-av' : 'u-pos-av');
+    document.getElementById('sb-name').textContent = u.fname + ' ' + u.lname;
+    document.getElementById('sel-banner').classList.add('show');
   }
+  document.getElementById('err').classList.remove('show');
+  document.getElementById('password').focus();
+}
 
-  function fillDemo(u, p, r) {
-    document.getElementById('username').value = u;
-    document.getElementById('password').value = p;
-    selectRole(r);
-    document.getElementById('error-msg').classList.remove('show');
+function doLogin() {
+  const errEl = document.getElementById('err');
+  if (!selectedUser) { errEl.textContent = 'Please select your account first.'; errEl.classList.add('show'); return; }
+  const pass = document.getElementById('password').value;
+  if (!pass) { errEl.textContent = 'Please enter your password.'; errEl.classList.add('show'); return; }
+  const user = USERS.find(u => u.username === selectedUser && u.password === pass);
+  if (!user) {
+    errEl.textContent = 'Incorrect password. Please try again.';
+    errEl.classList.add('show');
+    document.getElementById('password').value = '';
+    document.getElementById('password').focus();
+    return;
   }
+  errEl.classList.remove('show');
+  sessionStorage.setItem('pa-session', JSON.stringify({ ...user }));
+  window.location.href = user.role === 'pos' ? 'pos.html' : 'admin.html';
+}
 
-  function doLogin() {
-    const u = document.getElementById('username').value.trim().toLowerCase();
-    const p = document.getElementById('password').value;
-    const user = USERS.find(x => x.username === u && x.password === p && x.role === selectedRole);
-    if (!user) {
-      document.getElementById('error-msg').classList.add('show');
-      document.getElementById('password').value = '';
-      return;
-    }
-    document.getElementById('error-msg').classList.remove('show');
-    sessionStorage.setItem('pa-session', JSON.stringify({ ...user }));
-    if (user.role === 'pos') window.location.href = 'pos.html';
-    else window.location.href = 'admin.html';
-  }
-
-  // Enter key
-  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+renderUsers();
 </script>
 </body>
 </html>
