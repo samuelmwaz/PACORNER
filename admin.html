@@ -6,569 +6,1123 @@
 <title>Pa Corner — Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #07080a;
-    --surface: #0f1114;
-    --surface2: #161820;
-    --surface3: #1d2028;
-    --border: #252730;
-    --green: #00e676;
-    --green-dim: rgba(0,230,118,0.08);
-    --amber: #ffab00;
-    --amber-dim: rgba(255,171,0,0.08);
-    --red: #ff5252;
-    --red-dim: rgba(255,82,82,0.08);
-    --blue: #448aff;
-    --blue-dim: rgba(68,138,255,0.08);
-    --purple: #e040fb;
-    --text: #e8e8ee;
-    --muted: #666;
-    --muted2: #444;
-    --mono: 'Share Tech Mono', monospace;
-    --display: 'Barlow Condensed', sans-serif;
-  }
+:root {
+  --bg: #080809;
+  --surface: #111113;
+  --surface2: #18181c;
+  --surface3: #202026;
+  --border: #252530;
+  --border2: #2e2e3a;
+  --red: #e8192c;
+  --red-dim: rgba(232,25,44,0.15);
+  --green: #00c853;
+  --green-dim: rgba(0,200,83,0.12);
+  --amber: #ffab00;
+  --amber-dim: rgba(255,171,0,0.12);
+  --blue: #448aff;
+  --blue-dim: rgba(68,138,255,0.12);
+  --pink: #ff4081;
+  --text: #eeeef0;
+  --text2: #b0b0b8;
+  --muted: #606068;
+  --mono: 'Share Tech Mono', monospace;
+  --display: 'Barlow Condensed', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  font-family: var(--display);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--display);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* ── AUTH GATE ─────────────────────────── */
+#auth-gate {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 13px; color: var(--muted);
+  z-index: 9999; flex-direction: column; gap: 14px;
+}
+.gate-spinner {
+  width: 30px; height: 30px; border: 2px solid var(--border2);
+  border-top-color: var(--red); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
-    pointer-events: none; z-index: 1000;
-  }
+/* ── TOP NAVBAR ────────────────────────── */
+.topnav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  flex-shrink: 0;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 12px;
+}
+.brand-pill {
+  background: var(--red); color: #fff;
+  font-family: var(--display); font-weight: 900;
+  font-size: 11px; letter-spacing: 3px; padding: 3px 10px;
+  border-radius: 3px; text-transform: uppercase;
+}
+.brand-title {
+  font-family: var(--display); font-weight: 900;
+  font-size: 22px; letter-spacing: 3px; color: var(--text);
+  text-transform: uppercase;
+}
+.brand-badge {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 2px; margin-top: 1px;
+}
+.nav-right {
+  display: flex; align-items: center; gap: 16px;
+}
+.nav-clock {
+  font-family: var(--mono); font-size: 12px; color: var(--amber);
+}
+.admin-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 6px 12px;
+}
+.admin-avatar {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, var(--red), #ff6b35);
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 700; color: #fff;
+}
+.admin-name { font-size: 13px; color: var(--text); font-weight: 700; }
+.admin-role { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+.btn-logout {
+  background: transparent; border: 1px solid var(--border2); color: var(--muted);
+  font-family: var(--mono); font-size: 10px; padding: 5px 12px; border-radius: 5px;
+  cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+}
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
 
-  /* AUTH GATE */
-  #auth-gate {
-    position: fixed; inset: 0; background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 14px; color: var(--muted);
-    z-index: 9999; flex-direction: column; gap: 16px;
-  }
-  .gate-spinner {
-    width: 32px; height: 32px; border: 2px solid var(--border);
-    border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ── TAB BAR ───────────────────────────── */
+.tabbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; padding: 0 28px; gap: 0; flex-shrink: 0;
+}
+.tab-btn {
+  padding: 12px 20px; border: none; background: transparent;
+  color: var(--muted); font-family: var(--display); font-weight: 700;
+  font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.2s; white-space: nowrap;
+}
+.tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+.tab-btn:hover:not(.active) { color: var(--text); }
 
-  /* TOP BAR */
-  .topbar {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 0 28px; display: flex; justify-content: space-between; align-items: center;
-    height: 60px; position: sticky; top: 0; z-index: 100;
-  }
-  .topbar-left { display: flex; align-items: center; gap: 16px; }
-  .logo { font-size: 22px; font-weight: 900; letter-spacing: 3px; color: var(--green); text-transform: uppercase; }
-  .logo-sub { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 2px; }
-  .admin-badge {
-    background: var(--amber); color: #000; font-family: var(--mono); font-size: 10px;
-    font-weight: bold; padding: 3px 10px; border-radius: 3px; letter-spacing: 1px; text-transform: uppercase;
-    animation: pulse-amber 2s ease-in-out infinite;
-  }
-  @keyframes pulse-amber { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+/* ── MAIN LAYOUT ───────────────────────── */
+.main { flex: 1; padding: 24px 28px; overflow-y: auto; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  .topbar-right { display: flex; align-items: center; gap: 16px; }
-  .session-user {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 6px 12px;
-  }
-  .session-avatar {
-    width: 26px; height: 26px;
-    background: linear-gradient(135deg, var(--amber), #e65100);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: bold; color: #000; flex-shrink: 0;
-  }
-  .session-name { font-family: var(--mono); font-size: 12px; color: var(--text); }
-  .session-role { font-family: var(--mono); font-size: 10px; color: var(--amber); }
-  .btn-logout {
-    background: transparent; border: 1px solid var(--border); color: var(--muted);
-    font-family: var(--mono); font-size: 11px; padding: 6px 14px; border-radius: 6px;
-    cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
-  }
-  .btn-logout:hover { border-color: var(--red); color: var(--red); }
-  .live-indicator { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 12px; color: var(--green); }
-  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 1.2s ease-in-out infinite; }
-  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
-  .topbar-clock { font-family: var(--mono); font-size: 13px; color: var(--amber); }
+/* ── DATE PICKER BAR ───────────────────── */
+.date-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 16px; margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.date-bar label {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.date-bar input, .date-bar select {
+  background: var(--bg); border: 1px solid var(--border2); color: var(--text);
+  font-family: var(--mono); font-size: 13px; padding: 7px 12px;
+  border-radius: 6px; outline: none; transition: border-color 0.2s;
+}
+.date-bar input:focus, .date-bar select:focus { border-color: var(--red); }
+.btn-load {
+  background: var(--red); color: #fff; border: none;
+  font-family: var(--display); font-weight: 700; font-size: 14px;
+  letter-spacing: 1px; padding: 8px 18px; border-radius: 6px;
+  cursor: pointer; text-transform: uppercase; transition: opacity 0.2s;
+}
+.btn-load:hover { opacity: 0.85; }
+.btn-today {
+  background: transparent; border: 1px solid var(--border2); color: var(--amber);
+  font-family: var(--mono); font-size: 11px; padding: 7px 14px; border-radius: 6px;
+  cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+}
+.btn-today:hover { border-color: var(--amber); background: var(--amber-dim); }
 
-  /* MAIN */
-  .main { padding: 24px 28px; max-width: 1200px; margin: 0 auto; }
+/* ── STAT CARDS ────────────────────────── */
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px; margin-bottom: 22px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: var(--border2); }
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.stat-card.red::before { background: var(--red); }
+.stat-card.green::before { background: var(--green); }
+.stat-card.amber::before { background: var(--amber); }
+.stat-card.blue::before { background: var(--blue); }
+.stat-label {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+}
+.stat-value {
+  font-family: var(--display); font-size: 32px; font-weight: 900;
+  letter-spacing: 1px; line-height: 1;
+}
+.stat-card.red .stat-value { color: var(--red); }
+.stat-card.green .stat-value { color: var(--green); }
+.stat-card.amber .stat-value { color: var(--amber); }
+.stat-card.blue .stat-value { color: var(--blue); }
+.stat-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 6px; }
 
-  .kpi-strip {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;
-    animation: fadeUp 0.5s ease both;
-  }
-  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+/* ── SECTION HEADINGS ──────────────────── */
+.section-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; margin-top: 6px;
+}
+.section-title {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  letter-spacing: 3px; text-transform: uppercase;
+}
+.section-title span { color: var(--amber); }
 
-  .kpi-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    padding: 18px; position: relative; overflow: hidden; transition: border-color 0.3s;
-  }
-  .kpi-card::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 100%; height: 3px; background: var(--accent-color, var(--green));
-  }
-  .kpi-card:hover { border-color: var(--accent-color, var(--green)); }
-  .kpi-label { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-  .kpi-value { font-size: 32px; font-weight: 900; color: var(--accent-color, var(--green)); line-height: 1; letter-spacing: -1px; }
-  .kpi-sub { font-size: 12px; font-family: var(--mono); color: var(--muted); margin-top: 6px; }
-  .kpi-icon { position: absolute; right: 16px; top: 16px; font-size: 24px; opacity: 0.15; }
+/* ── STAFF PERFORMANCE CARDS ───────────── */
+.staff-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px; margin-bottom: 24px;
+}
+.staff-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; transition: all 0.2s;
+  cursor: pointer;
+}
+.staff-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.staff-card.selected { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+.staff-card-header {
+  padding: 16px 18px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.staff-avatar-lg {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), #ff6b35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; color: #fff; flex-shrink: 0;
+}
+.staff-name { font-size: 17px; font-weight: 700; color: var(--text); }
+.staff-username { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; }
+.staff-terminal { font-family: var(--mono); font-size: 10px; color: var(--blue); }
+.staff-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  padding: 12px 18px; gap: 8px;
+}
+.staff-stat { text-align: center; }
+.staff-stat-val {
+  font-family: var(--display); font-size: 20px; font-weight: 900;
+}
+.staff-stat-val.money { color: var(--green); }
+.staff-stat-val.items { color: var(--amber); }
+.staff-stat-val.txn { color: var(--blue); }
+.staff-stat-lbl { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+.staff-bar-wrap { padding: 0 18px 14px; }
+.staff-bar-label {
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 9px; color: var(--muted); margin-bottom: 5px;
+}
+.staff-bar-bg { background: var(--surface3); border-radius: 3px; height: 5px; overflow: hidden; }
+.staff-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--red), var(--amber));
+  border-radius: 3px; transition: width 0.5s ease;
+}
 
-  .totals-bar {
-    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--green);
-    border-radius: 10px; padding: 18px 24px; display: flex; justify-content: space-between;
-    align-items: center; margin-bottom: 18px; animation: fadeUp 0.5s ease 0.05s both; flex-wrap: wrap; gap: 16px;
-  }
-  .tb-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
-  .tb-value { font-size: 36px; font-weight: 900; color: var(--green); letter-spacing: -1px; }
-  .tb-divider { width: 1px; height: 50px; background: var(--border); }
+/* ── ORDERS TABLE ──────────────────────── */
+.table-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin-bottom: 20px;
+}
+.table-head {
+  display: grid; padding: 10px 16px;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.table-row {
+  display: grid; padding: 11px 16px; border-bottom: 1px solid var(--border);
+  transition: background 0.15s; cursor: pointer; align-items: center;
+}
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background: var(--surface2); }
+.table-row.expanded { background: var(--surface2); }
+.orders-grid { grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr 0.8fr 0.6fr; }
+.cell-time { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.cell-operator { font-size: 13px; font-weight: 700; color: var(--text); }
+.cell-terminal { font-family: var(--mono); font-size: 10px; color: var(--blue); }
+.cell-total { font-family: var(--mono); font-size: 14px; color: var(--green); font-weight: bold; }
+.cell-items { font-family: var(--mono); font-size: 11px; color: var(--amber); }
+.cell-expand { text-align: right; color: var(--muted); font-size: 14px; }
 
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .panel-header {
-    padding: 14px 18px; border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .panel-title { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-  .panel-badge {
-    font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 10px;
-    background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
-  }
+/* Order detail expand */
+.order-detail {
+  background: var(--bg); border-top: 1px solid var(--border);
+  padding: 12px 20px; display: none;
+}
+.order-detail.show { display: block; }
+.detail-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px;
+}
+.detail-item {
+  background: var(--surface); border-radius: 6px; padding: 8px 10px;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid var(--border);
+}
+.detail-item-name { font-size: 12px; color: var(--text2); }
+.detail-item-info { text-align: right; }
+.detail-item-qty { font-family: var(--mono); font-size: 11px; color: var(--amber); }
+.detail-item-sub { font-family: var(--mono); font-size: 12px; color: var(--green); }
 
-  .terminals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; padding: 16px 18px; }
+/* ── CALENDAR ──────────────────────────── */
+.cal-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cal-month-title {
+  font-family: var(--display); font-size: 22px; font-weight: 900;
+  letter-spacing: 2px; color: var(--text);
+}
+.cal-nav-btn {
+  background: var(--surface); border: 1px solid var(--border2); color: var(--text2);
+  width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.cal-nav-btn:hover { border-color: var(--red); color: var(--red); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+.cal-day-label {
+  text-align: center; font-family: var(--mono); font-size: 9px;
+  color: var(--muted); letter-spacing: 2px; padding: 4px 0;
+}
+.cal-day {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 6px; text-align: center;
+  cursor: pointer; transition: all 0.2s; min-height: 60px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 3px;
+}
+.cal-day:hover:not(.empty) { border-color: var(--border2); background: var(--surface2); }
+.cal-day.empty { background: transparent; border-color: transparent; cursor: default; }
+.cal-day.today { border-color: var(--red); }
+.cal-day.has-data { border-color: var(--green); }
+.cal-day.selected { background: var(--red-dim); border-color: var(--red); }
+.cal-day-num { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+.cal-day.today .cal-day-num { color: var(--red); font-weight: bold; }
+.cal-day-total { font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--green); }
+.cal-day-txn { font-family: var(--mono); font-size: 9px; color: var(--muted); }
 
-  .terminal-card {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 16px; transition: all 0.3s; position: relative; overflow: hidden;
-  }
-  .terminal-card.active-order { border-color: rgba(0,230,118,0.4); box-shadow: 0 0 20px rgba(0,230,118,0.06); }
-  .terminal-card.idle { opacity: 0.7; }
-  .terminal-card::after {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 3px; height: 100%; background: var(--green); opacity: 0; transition: opacity 0.3s;
-  }
-  .terminal-card.active-order::after { opacity: 1; }
+/* ── LEADERBOARD ───────────────────────── */
+.leaderboard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.lb-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border); transition: background 0.15s;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row:hover { background: var(--surface2); }
+.lb-rank { font-family: var(--display); font-size: 28px; font-weight: 900; color: var(--muted); width: 30px; flex-shrink: 0; }
+.lb-row:nth-child(1) .lb-rank { color: var(--amber); }
+.lb-row:nth-child(2) .lb-rank { color: var(--text2); }
+.lb-row:nth-child(3) .lb-rank { color: #cd7f32; }
+.lb-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--red), #ff6b35); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.lb-info { flex: 1; }
+.lb-name { font-size: 16px; font-weight: 700; color: var(--text); }
+.lb-detail { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+.lb-total { font-family: var(--display); font-size: 22px; font-weight: 900; color: var(--green); }
+.lb-bar-wrap { width: 100px; }
+.lb-bar-bg { background: var(--surface3); border-radius: 3px; height: 4px; }
+.lb-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), #00e676); border-radius: 3px; }
 
-  .tc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-  .tc-id { font-family: var(--mono); font-size: 13px; color: var(--blue); font-weight: bold; }
-  .tc-operator { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 10px; }
-  .tc-status {
-    font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 10px;
-  }
-  .tc-status.active { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
-  .tc-status.idle { background: var(--surface3); color: var(--muted); border: 1px solid var(--border); }
-  .tc-status.offline { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,82,82,0.3); }
+/* ── TOP ITEMS ──────────────────────────── */
+.top-items-list { display: flex; flex-direction: column; gap: 6px; }
+.top-item-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+}
+.top-item-rank { font-family: var(--mono); font-size: 11px; color: var(--muted); width: 20px; flex-shrink: 0; }
+.top-item-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+.top-item-qty { font-family: var(--mono); font-size: 12px; color: var(--amber); }
+.top-item-rev { font-family: var(--mono); font-size: 12px; color: var(--green); min-width: 70px; text-align: right; }
+.top-item-bar-bg { width: 80px; background: var(--surface3); border-radius: 2px; height: 3px; }
+.top-item-bar-fill { height: 100%; background: var(--amber); border-radius: 2px; }
 
-  .tc-total { font-size: 28px; font-weight: 900; color: var(--green); margin-bottom: 4px; }
-  .tc-items-count { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+/* ── EMPTY / LOADING ───────────────────── */
+.empty-panel {
+  text-align: center; padding: 40px 20px; color: var(--muted);
+  font-family: var(--mono); font-size: 12px; line-height: 2;
+}
+.empty-panel .icon { font-size: 36px; margin-bottom: 10px; display: block; }
 
-  .tc-items { display: flex; flex-direction: column; gap: 4px; }
-  .tc-item-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px solid var(--border); }
-  .tc-item-row:last-child { border-bottom: none; }
-  .tc-item-name { color: var(--text); }
-  .tc-item-qty { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .tc-item-sub { font-family: var(--mono); font-size: 12px; color: var(--amber); }
-  .tc-no-order { font-family: var(--mono); font-size: 12px; color: var(--muted2); text-align: center; padding: 10px 0; }
-  .tc-lastseen { font-family: var(--mono); font-size: 10px; color: var(--muted2); margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
-
-  .no-terminals { text-align: center; padding: 50px 20px; color: var(--muted); font-family: var(--mono); font-size: 13px; line-height: 2; }
-  .no-terminals .big { font-size: 40px; margin-bottom: 10px; opacity: 0.3; }
-
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; animation: fadeUp 0.5s ease 0.15s both; }
-
-  .menu-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 14px; transition: background 0.15s;
-  }
-  .menu-row:last-child { border-bottom: none; }
-  .menu-row:hover { background: var(--surface2); }
-  .menu-row-name { color: var(--text); font-weight: 600; }
-  .menu-row-right { display: flex; align-items: center; gap: 16px; }
-  .menu-row-sold { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-  .menu-row-revenue { font-family: var(--mono); font-size: 12px; color: var(--amber); }
-
-  .history-list { max-height: 300px; overflow-y: auto; }
-  .history-list::-webkit-scrollbar { width: 3px; }
-  .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  .history-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 18px; border-bottom: 1px solid var(--border); font-size: 13px;
-  }
-  .history-row:last-child { border-bottom: none; }
-  .history-terminal { font-family: var(--mono); font-size: 11px; color: var(--blue); }
-  .history-operator { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-  .history-summary { color: var(--muted); font-size: 12px; font-family: var(--mono); margin-top: 2px; }
-  .history-total { font-family: var(--mono); font-size: 15px; color: var(--green); font-weight: bold; }
-  .history-time { font-family: var(--mono); font-size: 10px; color: var(--muted2); text-align: right; }
-  .history-empty { text-align: center; padding: 30px; color: var(--muted2); font-family: var(--mono); font-size: 12px; }
-
-  /* Staff table */
-  .staff-table { width: 100%; }
-  .staff-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 18px; border-bottom: 1px solid var(--border); transition: background 0.15s;
-  }
-  .staff-row:last-child { border-bottom: none; }
-  .staff-row:hover { background: var(--surface2); }
-  .staff-av {
-    width: 30px; height: 30px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: bold; color: #000; flex-shrink: 0;
-  }
-  .staff-name { flex: 1; font-weight: 600; font-size: 14px; color: var(--text); }
-  .staff-role-tag {
-    font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 10px;
-  }
-  .staff-role-tag.admin { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,171,0,0.3); }
-  .staff-role-tag.pos { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,230,118,0.3); }
-  .staff-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-
-  .btn-clear-history {
-    background: transparent; border: 1px solid var(--red); color: var(--red);
-    font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 4px;
-    cursor: pointer; transition: all 0.2s; letter-spacing: 1px;
-  }
-  .btn-clear-history:hover { background: var(--red); color: #fff; }
-
-  .refresh-bar {
-    background: var(--blue-dim); border: 1px solid rgba(68,138,255,0.2);
-    border-radius: 6px; padding: 10px 16px; font-family: var(--mono); font-size: 12px;
-    color: var(--blue); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
-  }
-  .refresh-bar.hidden { display: none; }
-
-  @media (max-width: 900px) {
-    .kpi-strip { grid-template-columns: repeat(2,1fr); }
-    .grid-2 { grid-template-columns: 1fr; }
-    .main { padding: 16px; }
-    .topbar { padding: 0 16px; }
-    .session-user { display: none; }
-  }
+/* ── RESPONSIVE ─────────────────────────── */
+@media (max-width: 600px) {
+  .topnav { padding: 0 14px; }
+  .main { padding: 14px; }
+  .tabbar { padding: 0 14px; overflow-x: auto; }
+  .tab-btn { padding: 10px 12px; font-size: 11px; }
+  .orders-grid { grid-template-columns: 1fr 1fr 1fr 0.6fr; }
+  .cell-terminal, .cell-items { display: none; }
+}
 </style>
 </head>
 <body>
 
 <div id="auth-gate">
   <div class="gate-spinner"></div>
-  <span>Verifying admin access...</span>
+  <span>Checking session...</span>
 </div>
 
-<div id="app-wrap" style="display:none;">
+<div id="app" style="display:none; flex-direction:column; min-height:100vh;">
 
-<div class="topbar">
-  <div class="topbar-left">
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="brand-pill">PA</div>
     <div>
-      <div class="logo">PA CORNER</div>
-      <div class="logo-sub">ADMIN DASHBOARD</div>
+      <div class="brand-title">Corner</div>
     </div>
-    <div class="admin-badge">● ADMIN</div>
+    <div style="width:1px;height:28px;background:var(--border);margin:0 6px;"></div>
+    <div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;">ADMIN DASHBOARD</div>
+    </div>
   </div>
-  <div class="topbar-right">
-    <div class="live-indicator"><div class="live-dot"></div> LIVE</div>
-    <div class="topbar-clock" id="admin-clock">--:--</div>
-    <div class="session-user">
-      <div class="session-avatar" id="admin-avatar">A</div>
+  <div class="nav-right">
+    <div class="nav-clock" id="clock">--:--</div>
+    <div class="admin-chip">
+      <div class="admin-avatar" id="admin-avatar">A</div>
       <div>
-        <div class="session-name" id="admin-name">Admin</div>
-        <div class="session-role">ADMINISTRATOR</div>
+        <div class="admin-name" id="admin-name">Admin</div>
+        <div class="admin-role">MANAGER</div>
       </div>
     </div>
     <button class="btn-logout" onclick="logout()">⏻ Logout</button>
   </div>
+</nav>
+
+<!-- TAB BAR -->
+<div class="tabbar">
+  <button class="tab-btn active" id="tab-today" onclick="switchTab('today')">📊 Today</button>
+  <button class="tab-btn" id="tab-staff" onclick="switchTab('staff')">👥 Staff</button>
+  <button class="tab-btn" id="tab-orders" onclick="switchTab('orders')">📋 Orders</button>
+  <button class="tab-btn" id="tab-calendar" onclick="switchTab('calendar')">📅 Calendar</button>
+  <button class="tab-btn" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Rankings</button>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
-  <div class="refresh-bar hidden" id="refresh-bar">⚡ Terminal data updated in real-time</div>
+  <!-- TODAY TAB -->
+  <div class="tab-panel active" id="panel-today">
+    <div class="date-bar">
+      <label>Date</label>
+      <input type="date" id="today-date-pick" />
+      <button class="btn-today" onclick="setToday()">Today</button>
+      <button class="btn-load" onclick="loadDayData()">Load Day</button>
+      <span id="today-loaded-label" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:4px;"></span>
+    </div>
 
-  <div class="kpi-strip">
-    <div class="kpi-card" style="--accent-color:var(--green)">
-      <div class="kpi-icon">💰</div>
-      <div class="kpi-label">Live Active Orders</div>
-      <div class="kpi-value" id="kpi-live">K0.00</div>
-      <div class="kpi-sub" id="kpi-live-sub">pending payment</div>
+    <div class="stat-grid" id="today-stats">
+      <div class="stat-card red">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value" id="stat-revenue">K0</div>
+        <div class="stat-sub" id="stat-revenue-sub">—</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Transactions</div>
+        <div class="stat-value" id="stat-txn">0</div>
+        <div class="stat-sub" id="stat-txn-sub">—</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Items Sold</div>
+        <div class="stat-value" id="stat-items">0</div>
+        <div class="stat-sub" id="stat-items-sub">—</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Active Staff</div>
+        <div class="stat-value" id="stat-staff">0</div>
+        <div class="stat-sub" id="stat-staff-sub">—</div>
+      </div>
     </div>
-    <div class="kpi-card" style="--accent-color:var(--amber)">
-      <div class="kpi-icon">🧾</div>
-      <div class="kpi-label">Collected Today</div>
-      <div class="kpi-value" id="kpi-collected">K0.00</div>
-      <div class="kpi-sub" id="kpi-collected-sub">from completed orders</div>
-    </div>
-    <div class="kpi-card" style="--accent-color:var(--blue)">
-      <div class="kpi-icon">📱</div>
-      <div class="kpi-label">Active Terminals</div>
-      <div class="kpi-value" id="kpi-terminals">0</div>
-      <div class="kpi-sub" id="kpi-terminals-sub">online now</div>
-    </div>
-    <div class="kpi-card" style="--accent-color:var(--purple)">
-      <div class="kpi-icon">🍺</div>
-      <div class="kpi-label">Items Pending</div>
-      <div class="kpi-value" id="kpi-items">0</div>
-      <div class="kpi-sub" id="kpi-items-sub">across open orders</div>
-    </div>
-  </div>
 
-  <div class="totals-bar">
-    <div>
-      <div class="tb-label">Grand Total (Active + Collected)</div>
-      <div class="tb-value" id="grand-total">K0.00</div>
-    </div>
-    <div class="tb-divider"></div>
-    <div>
-      <div class="tb-label">Orders Completed</div>
-      <div class="tb-value" id="orders-done" style="color:var(--amber)">0</div>
-    </div>
-    <div class="tb-divider"></div>
-    <div>
-      <div class="tb-label">Terminals Online</div>
-      <div class="tb-value" id="terminals-online" style="color:var(--blue)">0</div>
-    </div>
-    <div class="tb-divider"></div>
-    <div style="text-align:right">
-      <div class="tb-label">Last Update</div>
-      <div style="font-family:var(--mono);font-size:16px;color:var(--muted)" id="last-update">—</div>
-    </div>
-  </div>
-
-  <div class="panel" style="margin-bottom:18px;animation:fadeUp 0.5s ease 0.1s both;">
-    <div class="panel-header">
-      <span class="panel-title">// Live Terminals</span>
-      <span class="panel-badge" id="terminal-count-badge">0 terminals</span>
-    </div>
-    <div class="terminals-grid" id="terminals-grid">
-      <div class="no-terminals">
-        <div class="big">📱</div>
-        No POS terminals connected yet.<br>
-        Staff need to log in via <strong>pos.html</strong>.<br>
-        <span style="opacity:0.5;font-size:11px">Auto-updates every 3 seconds</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div class="section-head">
+          <div class="section-title">// Top Selling Items <span id="top-items-date"></span></div>
+        </div>
+        <div class="top-items-list" id="top-items-list">
+          <div class="empty-panel"><span class="icon">🍺</span>No data loaded.</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-head">
+          <div class="section-title">// Revenue by Staff</div>
+        </div>
+        <div id="today-staff-breakdown" class="leaderboard">
+          <div class="empty-panel"><span class="icon">👥</span>No data loaded.</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="grid-2">
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">// Top Items Today</span>
-        <span class="panel-badge" id="menu-items-badge">0 products</span>
-      </div>
-      <div id="menu-overview">
-        <div class="history-empty">No sales data yet.</div>
+  <!-- STAFF TAB -->
+  <div class="tab-panel" id="panel-staff">
+    <div class="date-bar">
+      <label>From</label>
+      <input type="date" id="staff-from" />
+      <label>To</label>
+      <input type="date" id="staff-to" />
+      <button class="btn-today" onclick="setStaffToday()">Today</button>
+      <button class="btn-load" onclick="loadStaffData()">Load</button>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">// Staff Performance <span id="staff-period-label"></span></div>
+    </div>
+    <div class="staff-grid" id="staff-grid">
+      <div class="empty-panel" style="grid-column:1/-1">
+        <span class="icon">👥</span>Select a date range and click Load.
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">// Completed Orders</span>
-        <button class="btn-clear-history" onclick="clearHistory()">Clear Log</button>
+    <!-- Selected staff orders -->
+    <div id="staff-orders-panel" style="display:none;">
+      <div class="section-head">
+        <div class="section-title">// Orders by <span id="selected-staff-name" style="color:var(--red);"></span></div>
+        <button onclick="clearStaffSelect()" style="background:transparent;border:1px solid var(--border2);color:var(--muted);font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;">✕ Clear</button>
       </div>
-      <div class="history-list" id="history-list">
-        <div class="history-empty">No completed orders yet.</div>
+      <div class="table-wrap">
+        <div class="table-head orders-grid">
+          <span>TIME</span><span>OPERATOR</span><span>TERMINAL</span><span>ITEMS</span><span>TOTAL</span><span></span>
+        </div>
+        <div id="staff-orders-list"></div>
       </div>
     </div>
   </div>
 
-  <!-- Staff / Users panel -->
-  <div class="panel" style="animation:fadeUp 0.5s ease 0.2s both;">
-    <div class="panel-header">
-      <span class="panel-title">// Registered Accounts</span>
-      <span class="panel-badge" id="staff-count-badge">0 users</span>
+  <!-- ORDERS TAB -->
+  <div class="tab-panel" id="panel-orders">
+    <div class="date-bar">
+      <label>Date</label>
+      <input type="date" id="orders-date-pick" />
+      <button class="btn-today" onclick="setOrdersToday()">Today</button>
+      <button class="btn-load" onclick="loadOrdersData()">Load</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">FILTER</label>
+        <select id="orders-filter" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:6px;outline:none;">
+          <option value="">All Staff</option>
+        </select>
+      </div>
     </div>
-    <div class="staff-table" id="staff-table">
-      <div class="history-empty">No users registered.</div>
+
+    <div id="orders-summary-bar" style="display:none;" class="stat-grid" id="orders-stats">
+      <div class="stat-card green"><div class="stat-label">Day Total</div><div class="stat-value" id="o-stat-total">K0</div></div>
+      <div class="stat-card amber"><div class="stat-label">Transactions</div><div class="stat-value" id="o-stat-txn">0</div></div>
+      <div class="stat-card blue"><div class="stat-label">Items Sold</div><div class="stat-value" id="o-stat-items">0</div></div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">// All Orders <span id="orders-date-label"></span></div>
+      <span id="orders-count-label" style="font-family:var(--mono);font-size:10px;color:var(--muted);"></span>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head orders-grid">
+        <span>TIME</span><span>OPERATOR</span><span>TERMINAL</span><span>ITEMS</span><span>TOTAL</span><span></span>
+      </div>
+      <div id="orders-list-body">
+        <div class="empty-panel"><span class="icon">📋</span>Select a date and click Load.</div>
+      </div>
     </div>
   </div>
 
-</div>
-</div>
+  <!-- CALENDAR TAB -->
+  <div class="tab-panel" id="panel-calendar">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+      <div class="cal-month-title" id="cal-month-title">—</div>
+      <button class="cal-nav-btn" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div id="cal-day-detail" style="margin-top:16px;display:none;">
+      <div class="section-head">
+        <div class="section-title">// <span id="cal-detail-date" style="color:var(--amber);"></span></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card green"><div class="stat-label">Revenue</div><div class="stat-value" id="cal-rev">K0</div></div>
+        <div class="stat-card amber"><div class="stat-label">Transactions</div><div class="stat-value" id="cal-txn">0</div></div>
+        <div class="stat-card blue"><div class="stat-label">Items</div><div class="stat-value" id="cal-items">0</div></div>
+      </div>
+      <div class="leaderboard" id="cal-staff-breakdown" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD TAB -->
+  <div class="tab-panel" id="panel-leaderboard">
+    <div class="date-bar">
+      <label>From</label>
+      <input type="date" id="lb-from" />
+      <label>To</label>
+      <input type="date" id="lb-to" />
+      <button class="btn-today" onclick="setLbToday()">Today</button>
+      <button class="btn-today" onclick="setLbMonth()" style="color:var(--blue);border-color:var(--blue);">This Month</button>
+      <button class="btn-load" onclick="loadLeaderboard()">Load</button>
+    </div>
+    <div class="section-head">
+      <div class="section-title">// Sales Rankings <span id="lb-period" style="color:var(--amber);"></span></div>
+    </div>
+    <div class="leaderboard" id="lb-list">
+      <div class="empty-panel"><span class="icon">🏆</span>Select a period and click Load.</div>
+    </div>
+    <div style="height:20px;"></div>
+    <div class="section-head">
+      <div class="section-title">// Top Products <span id="lb-products-period"></span></div>
+    </div>
+    <div class="top-items-list" id="lb-products-list">
+      <div class="empty-panel"><span class="icon">🍺</span>—</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
 
 <script>
-  // ── Auth guard ──
-  let session = null;
-  try { session = JSON.parse(sessionStorage.getItem('pa-session')); } catch(e) {}
+// ─── SESSION CHECK ─────────────────────────────────────────────
+let session = null;
+try { session = JSON.parse(sessionStorage.getItem('pa-session')); } catch(e) {}
 
-  if (!session || session.role !== 'admin') {
-    document.querySelector('#auth-gate span').textContent = 'Access denied. Redirecting...';
-    setTimeout(() => { window.location.href = 'index.html'; }, 1000);
-  } else {
-    document.getElementById('auth-gate').style.display = 'none';
-    document.getElementById('app-wrap').style.display = 'block';
+if (!session || session.role !== 'admin') {
+  document.querySelector('#auth-gate span').textContent = 'Access denied. Redirecting...';
+  setTimeout(() => window.location.href = 'index.html', 1200);
+} else {
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
 
-    // Set admin info
-    const initials = (session.fname[0] + session.lname[0]).toUpperCase();
-    document.getElementById('admin-avatar').textContent = initials;
-    document.getElementById('admin-name').textContent = session.fname + ' ' + session.lname;
+  const initials = (session.fname[0] + session.lname[0]).toUpperCase();
+  document.getElementById('admin-avatar').textContent = initials;
+  document.getElementById('admin-name').textContent = session.fname + ' ' + session.lname;
 
-    // Clock
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('admin-clock').textContent =
-        now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  // Clock
+  function updateClock() {
+    document.getElementById('clock').textContent = new Date()
+      .toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12: true });
+  }
+  updateClock(); setInterval(updateClock, 1000);
+
+  // ─── STORAGE KEY HELPERS ──────────────────────────────────────
+  // Sales stored under: pa-sales-YYYY-MM/DD
+  // We read from pa-history (flat) and also write to dated keys from pos.html checkout
+  // We'll primarily read from pa-history and filter by date
+
+  function dateKey(d) {
+    // d = Date object → "YYYY-MM/DD"
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `pa-sales-${y}-${m}/${day}`;
+  }
+
+  function getHistoryForDate(dateStr) {
+    // dateStr = "YYYY-MM-DD"
+    // Primary: try dated key
+    const d = new Date(dateStr + 'T00:00:00');
+    const key = dateKey(d);
+    let records = [];
+    try { records = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) {}
+
+    // Fallback: filter from pa-history by date
+    if (!records.length) {
+      try {
+        const all = JSON.parse(localStorage.getItem('pa-history') || '[]');
+        records = all.filter(r => {
+          const rd = new Date(r.time);
+          const rStr = rd.getFullYear() + '-' + String(rd.getMonth()+1).padStart(2,'0') + '-' + String(rd.getDate()).padStart(2,'0');
+          return rStr === dateStr;
+        });
+      } catch(e) {}
     }
-    updateClock(); setInterval(updateClock, 1000);
+    return records;
+  }
 
-    function timeAgo(ts) {
-      const d = Math.floor((Date.now() - ts) / 1000);
-      if (d < 10) return 'just now';
-      if (d < 60) return d + 's ago';
-      if (d < 3600) return Math.floor(d/60) + 'm ago';
-      return Math.floor(d/3600) + 'h ago';
-    }
+  function getHistoryRange(fromStr, toStr) {
+    // Get all records from pa-history within date range
+    let records = [];
+    try {
+      const all = JSON.parse(localStorage.getItem('pa-history') || '[]');
+      const from = new Date(fromStr + 'T00:00:00').getTime();
+      const to = new Date(toStr + 'T23:59:59').getTime();
+      records = all.filter(r => r.time >= from && r.time <= to);
+    } catch(e) {}
+    return records;
+  }
 
-    function formatTime(ts) {
-      return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    }
+  function getAllHistory() {
+    try { return JSON.parse(localStorage.getItem('pa-history') || '[]'); } catch(e) { return []; }
+  }
 
-    function showRefreshBar() {
-      const bar = document.getElementById('refresh-bar');
-      bar.classList.remove('hidden');
-      clearTimeout(window._rt);
-      window._rt = setTimeout(() => bar.classList.add('hidden'), 3000);
-    }
+  // ─── DATE UTILITIES ───────────────────────────────────────────
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
 
-    function refresh(showNotice) {
-      const terminals = JSON.parse(localStorage.getItem('pa-terminals') || '{}');
-      const history = JSON.parse(localStorage.getItem('pa-history') || '[]');
-      const users = JSON.parse(localStorage.getItem('pa-users') || '[]');
-      const now = Date.now();
-      const ACTIVE_THRESHOLD = 5 * 60 * 1000;
+  function fmtDate(ts) {
+    return new Date(ts).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12: true });
+  }
 
-      if (showNotice) showRefreshBar();
+  function fmtDateFull(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) + ' ' +
+      d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12: true });
+  }
 
-      const termList = Object.values(terminals);
-      let liveRevenue = 0, liveItems = 0, activeCount = 0;
-      termList.forEach(t => {
-        liveRevenue += t.total || 0;
-        liveItems += t.count || 0;
-        if (now - t.lastSeen < ACTIVE_THRESHOLD) activeCount++;
+  // ─── AGGREGATE HELPERS ────────────────────────────────────────
+  function aggregateByStaff(records) {
+    const map = {};
+    records.forEach(r => {
+      const key = r.operator || 'Unknown';
+      if (!map[key]) map[key] = { operator: key, terminal: r.terminal || '—', total: 0, itemCount: 0, txnCount: 0, records: [] };
+      map[key].total += r.total || 0;
+      map[key].itemCount += (r.items || []).reduce((s,i) => s + (i.qty||0), 0);
+      map[key].txnCount++;
+      map[key].records.push(r);
+    });
+    return Object.values(map).sort((a,b) => b.total - a.total);
+  }
+
+  function aggregateItems(records) {
+    const map = {};
+    records.forEach(r => {
+      (r.items || []).forEach(it => {
+        if (!map[it.name]) map[it.name] = { name: it.name, qty: 0, revenue: 0 };
+        map[it.name].qty += it.qty || 0;
+        map[it.name].revenue += it.sub || 0;
       });
+    });
+    return Object.values(map).sort((a,b) => b.revenue - a.revenue);
+  }
 
-      const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
-      const todayH = history.filter(h => h.time >= startOfDay.getTime());
-      const collected = todayH.reduce((s, h) => s + h.total, 0);
+  // ─── TABS ─────────────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    if (name === 'calendar') renderCalendar();
+  }
 
-      // KPIs
-      document.getElementById('kpi-live').textContent = 'K' + liveRevenue.toFixed(2);
-      document.getElementById('kpi-live-sub').textContent = termList.length + ' terminal(s) reporting';
-      document.getElementById('kpi-collected').textContent = 'K' + collected.toFixed(2);
-      document.getElementById('kpi-collected-sub').textContent = todayH.length + ' order(s) completed';
-      document.getElementById('kpi-terminals').textContent = activeCount;
-      document.getElementById('kpi-terminals-sub').textContent = termList.length + ' total seen';
-      document.getElementById('kpi-items').textContent = liveItems;
-      document.getElementById('grand-total').textContent = 'K' + (liveRevenue + collected).toFixed(2);
-      document.getElementById('orders-done').textContent = todayH.length;
-      document.getElementById('terminals-online').textContent = activeCount;
-      document.getElementById('last-update').textContent =
-        new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+  // ─── TODAY TAB ────────────────────────────────────────────────
+  function setToday() {
+    document.getElementById('today-date-pick').value = todayStr();
+  }
+  setToday();
 
-      // Terminals
-      document.getElementById('terminal-count-badge').textContent = termList.length + ' terminal' + (termList.length !== 1 ? 's' : '');
-      const grid = document.getElementById('terminals-grid');
-      if (!termList.length) {
-        grid.innerHTML = `<div class="no-terminals"><div class="big">📱</div>No POS terminals connected yet.<br>Staff need to log in via <strong>pos.html</strong>.</div>`;
-      } else {
-        grid.innerHTML = termList.sort((a,b) => (b.total||0)-(a.total||0)).map(t => {
-          const isActive = now - t.lastSeen < ACTIVE_THRESHOLD;
-          const hasOrder = (t.count || 0) > 0;
-          const cardClass = hasOrder ? 'active-order' : (isActive ? '' : 'idle');
-          const statusClass = hasOrder ? 'active' : (isActive ? 'idle' : 'offline');
-          const statusText = hasOrder ? 'ORDER OPEN' : (isActive ? 'STANDBY' : 'OFFLINE');
-          const itemsHtml = (t.items && t.items.length)
-            ? t.items.map(i => `<div class="tc-item-row"><span class="tc-item-name">${i.name}</span><span class="tc-item-qty">×${i.qty}</span><span class="tc-item-sub">K${i.sub.toFixed(2)}</span></div>`).join('')
-            : '<div class="tc-no-order">No active order</div>';
-          return `<div class="terminal-card ${cardClass}">
-            <div class="tc-header">
-              <div class="tc-id">${t.id}</div>
-              <div class="tc-status ${statusClass}">${statusText}</div>
-            </div>
-            <div class="tc-operator">👤 ${t.operator || 'Unknown'}</div>
-            <div class="tc-total">K${(t.total||0).toFixed(2)}</div>
-            <div class="tc-items-count">${t.count||0} item(s) · ${(t.menu&&t.menu.length)||0} menu items</div>
-            <div class="tc-items">${itemsHtml}</div>
-            <div class="tc-lastseen">Last seen: ${timeAgo(t.lastSeen)}</div>
-          </div>`;
-        }).join('');
+  function loadDayData() {
+    const dateStr = document.getElementById('today-date-pick').value;
+    if (!dateStr) return;
+    const records = getHistoryForDate(dateStr);
+    document.getElementById('today-loaded-label').textContent = dateStr + ' — ' + records.length + ' records';
+
+    // Stats
+    const total = records.reduce((s,r) => s + (r.total||0), 0);
+    const items = records.reduce((s,r) => s + (r.items||[]).reduce((ss,i) => ss + (i.qty||0), 0), 0);
+    const staff = new Set(records.map(r => r.operator)).size;
+    document.getElementById('stat-revenue').textContent = 'K' + total.toFixed(0);
+    document.getElementById('stat-revenue-sub').textContent = records.length + ' transactions';
+    document.getElementById('stat-txn').textContent = records.length;
+    document.getElementById('stat-items').textContent = items;
+    document.getElementById('stat-staff').textContent = staff;
+
+    // Top items
+    const topItems = aggregateItems(records).slice(0, 10);
+    const maxQty = topItems[0]?.qty || 1;
+    document.getElementById('top-items-date').textContent = dateStr;
+    if (!topItems.length) {
+      document.getElementById('top-items-list').innerHTML = '<div class="empty-panel"><span class="icon">🍺</span>No sales on this day.</div>';
+    } else {
+      document.getElementById('top-items-list').innerHTML = topItems.map((it, i) => `
+        <div class="top-item-row">
+          <div class="top-item-rank">#${i+1}</div>
+          <div class="top-item-name">${it.name}</div>
+          <div class="top-item-qty">×${it.qty}</div>
+          <div class="top-item-bar-bg"><div class="top-item-bar-fill" style="width:${Math.round(it.qty/maxQty*100)}%"></div></div>
+          <div class="top-item-rev">K${it.revenue.toFixed(0)}</div>
+        </div>`).join('');
+    }
+
+    // Staff breakdown
+    const byStaff = aggregateByStaff(records);
+    const maxStaffTotal = byStaff[0]?.total || 1;
+    if (!byStaff.length) {
+      document.getElementById('today-staff-breakdown').innerHTML = '<div class="empty-panel"><span class="icon">👥</span>No staff data.</div>';
+    } else {
+      document.getElementById('today-staff-breakdown').innerHTML = byStaff.map((s, i) => `
+        <div class="lb-row">
+          <div class="lb-rank">${i+1}</div>
+          <div class="lb-avatar">${s.operator.split(' ').map(w=>w[0]).join('').toUpperCase().substr(0,2)}</div>
+          <div class="lb-info">
+            <div class="lb-name">${s.operator}</div>
+            <div class="lb-detail">${s.txnCount} txn · ${s.itemCount} items · ${s.terminal}</div>
+          </div>
+          <div>
+            <div class="lb-total">K${s.total.toFixed(0)}</div>
+            <div class="lb-bar-wrap" style="margin-top:4px;"><div class="lb-bar-bg"><div class="lb-bar-fill" style="width:${Math.round(s.total/maxStaffTotal*100)}%"></div></div></div>
+          </div>
+        </div>`).join('');
+    }
+  }
+  loadDayData();
+
+  // ─── STAFF TAB ────────────────────────────────────────────────
+  let selectedStaffName = null;
+
+  function setStaffToday() {
+    document.getElementById('staff-from').value = todayStr();
+    document.getElementById('staff-to').value = todayStr();
+  }
+  setStaffToday();
+
+  function loadStaffData() {
+    const from = document.getElementById('staff-from').value;
+    const to = document.getElementById('staff-to').value;
+    if (!from || !to) return;
+    const records = getHistoryRange(from, to);
+    const byStaff = aggregateByStaff(records);
+    const maxTotal = byStaff[0]?.total || 1;
+    document.getElementById('staff-period-label').textContent = from === to ? from : from + ' → ' + to;
+    clearStaffSelect();
+
+    if (!byStaff.length) {
+      document.getElementById('staff-grid').innerHTML = '<div class="empty-panel" style="grid-column:1/-1"><span class="icon">👥</span>No data for this period.</div>';
+      return;
+    }
+
+    document.getElementById('staff-grid').innerHTML = byStaff.map(s => {
+      const initials = s.operator.split(' ').map(w=>w[0]).join('').toUpperCase().substr(0,2);
+      const pct = Math.round(s.total / maxTotal * 100);
+      return `<div class="staff-card" onclick="selectStaff('${s.operator.replace(/'/g,"\\'")}', this)" data-op="${s.operator}">
+        <div class="staff-card-header">
+          <div class="staff-avatar-lg">${initials}</div>
+          <div>
+            <div class="staff-name">${s.operator}</div>
+            <div class="staff-terminal">${s.terminal}</div>
+          </div>
+        </div>
+        <div class="staff-stats">
+          <div class="staff-stat"><div class="staff-stat-val money">K${s.total.toFixed(0)}</div><div class="staff-stat-lbl">Revenue</div></div>
+          <div class="staff-stat"><div class="staff-stat-val items">${s.itemCount}</div><div class="staff-stat-lbl">Items</div></div>
+          <div class="staff-stat"><div class="staff-stat-val txn">${s.txnCount}</div><div class="staff-stat-lbl">Orders</div></div>
+        </div>
+        <div class="staff-bar-wrap">
+          <div class="staff-bar-label"><span>Share of Revenue</span><span>${pct}%</span></div>
+          <div class="staff-bar-bg"><div class="staff-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Store records for drill-down
+    window._staffRecords = records;
+  }
+  loadStaffData();
+
+  function selectStaff(opName, el) {
+    document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedStaffName = opName;
+    document.getElementById('selected-staff-name').textContent = opName;
+    document.getElementById('staff-orders-panel').style.display = 'block';
+
+    const records = (window._staffRecords || []).filter(r => r.operator === opName)
+      .sort((a,b) => b.time - a.time);
+    renderOrdersTable(records, 'staff-orders-list');
+  }
+
+  function clearStaffSelect() {
+    selectedStaffName = null;
+    document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('staff-orders-panel').style.display = 'none';
+  }
+
+  // ─── ORDERS TABLE RENDERER ────────────────────────────────────
+  function renderOrdersTable(records, containerId) {
+    const el = document.getElementById(containerId);
+    if (!records.length) {
+      el.innerHTML = '<div class="empty-panel"><span class="icon">📋</span>No orders found.</div>';
+      return;
+    }
+
+    el.innerHTML = records.map((r, idx) => {
+      const itemCount = (r.items||[]).reduce((s,i) => s+(i.qty||0), 0);
+      const itemNames = (r.items||[]).slice(0,3).map(i => i.name + ' ×' + i.qty).join(', ');
+      const detailId = containerId + '-detail-' + idx;
+      const rowId = containerId + '-row-' + idx;
+      return `
+        <div class="table-row orders-grid" id="${rowId}" onclick="toggleOrderDetail('${detailId}','${rowId}')">
+          <span class="cell-time">${fmtDateFull(r.time)}</span>
+          <span class="cell-operator">${r.operator || '—'}</span>
+          <span class="cell-terminal">${r.terminal || '—'}</span>
+          <span class="cell-items">${itemCount} items</span>
+          <span class="cell-total">K${(r.total||0).toFixed(2)}</span>
+          <span class="cell-expand">▾</span>
+        </div>
+        <div class="order-detail" id="${detailId}">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">ORDER BREAKDOWN</div>
+          <div class="detail-grid">
+            ${(r.items||[]).map(it => `
+              <div class="detail-item">
+                <div class="detail-item-name">${it.name}</div>
+                <div class="detail-item-info">
+                  <div class="detail-item-qty">×${it.qty}</div>
+                  <div class="detail-item-sub">K${(it.sub||0).toFixed(2)}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleOrderDetail(detailId, rowId) {
+    const d = document.getElementById(detailId);
+    const r = document.getElementById(rowId);
+    const isOpen = d.classList.contains('show');
+    d.classList.toggle('show', !isOpen);
+    r.classList.toggle('expanded', !isOpen);
+  }
+
+  // ─── ORDERS TAB ───────────────────────────────────────────────
+  function setOrdersToday() {
+    document.getElementById('orders-date-pick').value = todayStr();
+  }
+  setOrdersToday();
+
+  function loadOrdersData() {
+    const dateStr = document.getElementById('orders-date-pick').value;
+    if (!dateStr) return;
+    let records = getHistoryForDate(dateStr).sort((a,b) => b.time - a.time);
+
+    // Populate filter
+    const operators = [...new Set(records.map(r => r.operator || ''))].filter(Boolean);
+    const filterEl = document.getElementById('orders-filter');
+    filterEl.innerHTML = '<option value="">All Staff</option>' + operators.map(o => `<option value="${o}">${o}</option>`).join('');
+
+    const filterVal = filterEl.value;
+    const filtered = filterVal ? records.filter(r => r.operator === filterVal) : records;
+
+    document.getElementById('orders-date-label').textContent = dateStr;
+    document.getElementById('orders-count-label').textContent = filtered.length + ' orders';
+
+    // Summary
+    const total = filtered.reduce((s,r) => s+(r.total||0), 0);
+    const items = filtered.reduce((s,r) => s+(r.items||[]).reduce((ss,i) => ss+(i.qty||0),0),0);
+    document.getElementById('orders-summary-bar').style.display = 'grid';
+    document.getElementById('o-stat-total').textContent = 'K' + total.toFixed(0);
+    document.getElementById('o-stat-txn').textContent = filtered.length;
+    document.getElementById('o-stat-items').textContent = items;
+
+    renderOrdersTable(filtered, 'orders-list-body');
+    window._ordersRecords = records;
+  }
+  loadOrdersData();
+
+  // re-filter on dropdown change
+  document.getElementById('orders-filter').addEventListener('change', () => {
+    const records = (window._ordersRecords || []);
+    const filterVal = document.getElementById('orders-filter').value;
+    const filtered = filterVal ? records.filter(r => r.operator === filterVal) : records;
+    document.getElementById('orders-count-label').textContent = filtered.length + ' orders';
+    const total = filtered.reduce((s,r) => s+(r.total||0), 0);
+    const items = filtered.reduce((s,r) => s+(r.items||[]).reduce((ss,i) => ss+(i.qty||0),0),0);
+    document.getElementById('o-stat-total').textContent = 'K' + total.toFixed(0);
+    document.getElementById('o-stat-txn').textContent = filtered.length;
+    document.getElementById('o-stat-items').textContent = items;
+    renderOrdersTable(filtered, 'orders-list-body');
+  });
+
+  // ─── CALENDAR TAB ─────────────────────────────────────────────
+  let calYear = new Date().getFullYear();
+  let calMonth = new Date().getMonth(); // 0-indexed
+
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+  function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
+
+  function renderCalendar() {
+    document.getElementById('cal-month-title').textContent = MONTH_NAMES[calMonth] + ' ' + calYear;
+
+    const allHistory = getAllHistory();
+    const todayD = new Date();
+
+    // Build day totals for this month
+    const dayTotals = {};
+    allHistory.forEach(r => {
+      const d = new Date(r.time);
+      if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
+        const day = d.getDate();
+        if (!dayTotals[day]) dayTotals[day] = { total: 0, txn: 0 };
+        dayTotals[day].total += r.total || 0;
+        dayTotals[day].txn++;
       }
-
-      // Top items
-      const itemMap = {};
-      todayH.forEach(h => h.items.forEach(i => {
-        if (!itemMap[i.name]) itemMap[i.name] = { sold:0, revenue:0 };
-        itemMap[i.name].sold += i.qty; itemMap[i.name].revenue += i.sub;
-      }));
-      termList.forEach(t => (t.items||[]).forEach(i => {
-        if (!itemMap[i.name]) itemMap[i.name] = { sold:0, revenue:0, active:0 };
-        if (!itemMap[i.name].active) itemMap[i.name].active = 0;
-        itemMap[i.name].active += i.qty;
-      }));
-      const allItems = Object.entries(itemMap).sort((a,b) => b[1].revenue - a[1].revenue);
-      document.getElementById('menu-items-badge').textContent = allItems.length + ' product' + (allItems.length!==1?'s':'');
-      document.getElementById('menu-overview').innerHTML = allItems.length
-        ? allItems.map(([name,d]) => `<div class="menu-row"><div class="menu-row-name">${name}</div><div class="menu-row-right"><span class="menu-row-sold">${d.sold||0} sold${d.active?' · '+d.active+' pending':''}</span><span class="menu-row-revenue">K${(d.revenue||0).toFixed(2)}</span></div></div>`).join('')
-        : '<div class="history-empty">No sales data yet.</div>';
-
-      // History log
-      document.getElementById('history-list').innerHTML = todayH.length
-        ? todayH.slice(0,30).map(h => {
-          const summary = h.items.map(i => `${i.name}×${i.qty}`).join(', ');
-          return `<div class="history-row">
-            <div>
-              <div class="history-terminal">${h.terminal}</div>
-              <div class="history-operator">👤 ${h.operator||'—'}</div>
-              <div class="history-summary">${summary}</div>
-            </div>
-            <div style="text-align:right">
-              <div class="history-total">K${h.total.toFixed(2)}</div>
-              <div class="history-time">${formatTime(h.time)}</div>
-            </div>
-          </div>`;
-        }).join('')
-        : '<div class="history-empty">No completed orders yet.</div>';
-
-      // Staff list
-      const colors = ['#00e676','#ffab00','#448aff','#e040fb','#ff5252','#00bcd4'];
-      document.getElementById('staff-count-badge').textContent = users.length + ' user' + (users.length!==1?'s':'');
-      document.getElementById('staff-table').innerHTML = users.length
-        ? users.map((u, idx) => {
-          const initials2 = ((u.fname||'?')[0] + (u.lname||'?')[0]).toUpperCase();
-          const col = colors[idx % colors.length];
-          const created = u.created ? new Date(u.created).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-          return `<div class="staff-row">
-            <div class="staff-av" style="background:${col}">${initials2}</div>
-            <div class="staff-name">${u.fname} ${u.lname} <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">@${u.username}</span></div>
-            <div class="staff-role-tag ${u.role}">${u.role.toUpperCase()}</div>
-            <div class="staff-meta">Joined ${created}</div>
-          </div>`;
-        }).join('')
-        : '<div class="history-empty">No users registered.</div>';
-    }
-
-    function clearHistory() {
-      if (confirm('Clear all completed order history?')) {
-        localStorage.setItem('pa-history', '[]');
-        refresh(false);
-      }
-    }
-
-    function logout() {
-      sessionStorage.removeItem('pa-session');
-      window.location.href = 'index.html';
-    }
-
-    window.addEventListener('storage', e => {
-      if (['pa-terminals','pa-history','pa-ping'].includes(e.key)) refresh(true);
     });
 
-    setInterval(() => refresh(false), 3000);
-    refresh(false);
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    // Day labels
+    let html = DAY_NAMES.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+    // Empty cells
+    for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isToday = todayD.getDate() === day && todayD.getMonth() === calMonth && todayD.getFullYear() === calYear;
+      const data = dayTotals[day];
+      const hasData = !!data;
+      html += `<div class="cal-day${isToday ? ' today' : ''}${hasData ? ' has-data' : ''}"
+        onclick="calSelectDay(${day})">
+        <div class="cal-day-num">${day}</div>
+        ${hasData ? `<div class="cal-day-total">K${data.total.toFixed(0)}</div>` : ''}
+        ${hasData ? `<div class="cal-day-txn">${data.txn} orders</div>` : ''}
+      </div>`;
+    }
+
+    document.getElementById('cal-grid').innerHTML = html;
+    document.getElementById('cal-day-detail').style.display = 'none';
   }
+
+  function calSelectDay(day) {
+    // Highlight selected
+    document.querySelectorAll('.cal-day').forEach(d => d.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+
+    const dateStr = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+    const records = getHistoryForDate(dateStr);
+
+    document.getElementById('cal-day-detail').style.display = 'block';
+    document.getElementById('cal-detail-date').textContent = day + ' ' + MONTH_NAMES[calMonth] + ' ' + calYear;
+
+    const total = records.reduce((s,r) => s+(r.total||0), 0);
+    const items = records.reduce((s,r) => s+(r.items||[]).reduce((ss,i) => ss+(i.qty||0),0),0);
+    document.getElementById('cal-rev').textContent = 'K' + total.toFixed(0);
+    document.getElementById('cal-txn').textContent = records.length;
+    document.getElementById('cal-items').textContent = items;
+
+    const byStaff = aggregateByStaff(records);
+    const maxT = byStaff[0]?.total || 1;
+    if (!byStaff.length) {
+      document.getElementById('cal-staff-breakdown').innerHTML = '<div class="empty-panel"><span class="icon">👥</span>No staff data for this day.</div>';
+    } else {
+      document.getElementById('cal-staff-breakdown').innerHTML = byStaff.map((s, i) => `
+        <div class="lb-row">
+          <div class="lb-rank">${i+1}</div>
+          <div class="lb-avatar">${s.operator.split(' ').map(w=>w[0]).join('').toUpperCase().substr(0,2)}</div>
+          <div class="lb-info">
+            <div class="lb-name">${s.operator}</div>
+            <div class="lb-detail">${s.txnCount} txn · ${s.itemCount} items · ${s.terminal}</div>
+          </div>
+          <div>
+            <div class="lb-total">K${s.total.toFixed(0)}</div>
+            <div class="lb-bar-wrap" style="margin-top:4px;"><div class="lb-bar-bg"><div class="lb-bar-fill" style="width:${Math.round(s.total/maxT*100)}%"></div></div></div>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  // ─── LEADERBOARD TAB ──────────────────────────────────────────
+  function setLbToday() {
+    document.getElementById('lb-from').value = todayStr();
+    document.getElementById('lb-to').value = todayStr();
+  }
+  function setLbMonth() {
+    const d = new Date();
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0');
+    document.getElementById('lb-from').value = `${y}-${m}-01`;
+    document.getElementById('lb-to').value = todayStr();
+  }
+  setLbToday();
+
+  function loadLeaderboard() {
+    const from = document.getElementById('lb-from').value;
+    const to = document.getElementById('lb-to').value;
+    if (!from || !to) return;
+    const records = getHistoryRange(from, to);
+    const period = from === to ? from : from + ' → ' + to;
+    document.getElementById('lb-period').textContent = period;
+    document.getElementById('lb-products-period').textContent = period;
+
+    const byStaff = aggregateByStaff(records);
+    const maxT = byStaff[0]?.total || 1;
+
+    if (!byStaff.length) {
+      document.getElementById('lb-list').innerHTML = '<div class="empty-panel"><span class="icon">🏆</span>No data for this period.</div>';
+    } else {
+      document.getElementById('lb-list').innerHTML = byStaff.map((s, i) => `
+        <div class="lb-row">
+          <div class="lb-rank">${i+1}</div>
+          <div class="lb-avatar">${s.operator.split(' ').map(w=>w[0]).join('').toUpperCase().substr(0,2)}</div>
+          <div class="lb-info">
+            <div class="lb-name">${s.operator}</div>
+            <div class="lb-detail">${s.txnCount} orders · ${s.itemCount} items sold · ${s.terminal}</div>
+            <div style="margin-top:4px;" class="lb-bar-wrap" style="width:100%;"><div class="lb-bar-bg" style="width:100%;"><div class="lb-bar-fill" style="width:${Math.round(s.total/maxT*100)}%"></div></div></div>
+          </div>
+          <div style="text-align:right;">
+            <div class="lb-total">K${s.total.toFixed(2)}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;">avg K${(s.total/s.txnCount).toFixed(0)}/order</div>
+          </div>
+        </div>`).join('');
+    }
+
+    const topItems = aggregateItems(records).slice(0, 15);
+    const maxQty = topItems[0]?.qty || 1;
+    if (!topItems.length) {
+      document.getElementById('lb-products-list').innerHTML = '<div class="empty-panel"><span class="icon">🍺</span>No data.</div>';
+    } else {
+      document.getElementById('lb-products-list').innerHTML = topItems.map((it, i) => `
+        <div class="top-item-row">
+          <div class="top-item-rank">#${i+1}</div>
+          <div class="top-item-name">${it.name}</div>
+          <div class="top-item-qty">×${it.qty}</div>
+          <div class="top-item-bar-bg"><div class="top-item-bar-fill" style="width:${Math.round(it.qty/maxQty*100)}%"></div></div>
+          <div class="top-item-rev">K${it.revenue.toFixed(0)}</div>
+        </div>`).join('');
+    }
+  }
+  loadLeaderboard();
+
+  // ─── LOGOUT ───────────────────────────────────────────────────
+  function logout() {
+    sessionStorage.removeItem('pa-session');
+    window.location.href = 'index.html';
+  }
+
+  // Auto-refresh every 30 seconds
+  setInterval(() => {
+    const activePanel = document.querySelector('.tab-panel.active');
+    if (activePanel?.id === 'panel-today') loadDayData();
+  }, 30000);
+}
 </script>
 </body>
 </html>
