@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pa Corner — POS Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --surface: #1a1a1c;
+    --surface2: #242428;
+    --border: #2e2e34;
+    --green: #00e676;
+    --amber: #ffab00;
+    --red: #ff5252;
+    --blue: #448aff;
+    --pink: #ff4081;
+    --text: #f0f0f0;
+    --muted: #888;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 12px;
+    font-family: var(--display);
+    gap: 10px;
+  }
+
+  .user-topbar {
+    width: 400px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: var(--mono);
+  }
+  .user-info { display: flex; align-items: center; gap: 8px; }
+  .user-avatar {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #e8192c, #ff6b35);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: bold; color: #fff; flex-shrink: 0;
+  }
+  .user-name { font-size: 12px; color: var(--text); }
+  .user-role { font-size: 10px; color: var(--muted); }
+  .btn-logout {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 4px;
+    cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  .phone {
+    width: 400px; background: var(--bg);
+    border: 2px solid #2a2a30; border-radius: 28px; display: flex; flex-direction: column;
+    overflow: hidden; box-shadow: 0 0 60px rgba(232,25,44,0.06), 0 30px 80px rgba(0,0,0,0.8);
+    position: relative; min-height: 700px;
+  }
+
+  .header {
+    background: var(--surface); padding: 14px 18px; display: flex;
+    justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    position: relative; overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #e8192c, #ffab00, #1a7a3c);
+  }
+  .header-title { font-size: 22px; font-weight: 900; letter-spacing: 3px; color: #e8192c; text-transform: uppercase; }
+  .header-sub { font-size: 9px; color: var(--muted); font-family: var(--mono); letter-spacing: 2px; margin-top: 1px; }
+  .time-display { font-family: var(--mono); font-size: 12px; color: var(--amber); }
+  .terminal-badge {
+    font-family: var(--mono); font-size: 10px; color: var(--blue);
+    background: rgba(68,138,255,0.12); border: 1px solid rgba(68,138,255,0.3);
+    border-radius: 3px; padding: 2px 6px; margin-top: 3px; display: inline-block;
+  }
+
+  .nav {
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+    background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .nav button {
+    padding: 10px 2px; border: none; background: transparent; color: var(--muted);
+    font-family: var(--display); font-weight: 700; font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;
+  }
+  .nav button.active { color: #e8192c; border-bottom-color: #e8192c; }
+  .nav button:hover:not(.active) { color: var(--text); }
+
+  .screen { flex: 1; overflow-y: auto; display: none; flex-direction: column; }
+  .screen.active { display: flex; }
+  .screen::-webkit-scrollbar { width: 3px; }
+  .screen::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .section-title {
+    font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 2px;
+    text-transform: uppercase; padding: 10px 16px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* Category tabs */
+  .cat-tabs {
+    display: flex; gap: 0; overflow-x: auto; background: var(--surface2);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    padding: 8px 14px; border: none; background: transparent; color: var(--muted);
+    font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .cat-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+  .cat-tab:hover:not(.active) { color: var(--text); }
+
+  /* Menu Setup */
+  .setup-form {
+    padding: 12px; background: var(--surface); margin: 10px;
+    border-radius: 10px; border: 1px solid var(--border); flex-shrink: 0;
+  }
+  .form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .form-field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .form-field label { font-size: 10px; font-family: var(--mono); color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .form-field input, .form-field select {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 10px; border-radius: 6px; font-family: var(--mono); font-size: 13px;
+    width: 100%; outline: none; transition: border-color 0.2s;
+  }
+  .form-field input:focus, .form-field select:focus { border-color: #e8192c; }
+  .form-field select option { background: var(--bg); }
+  .btn-add {
+    width: 100%; background: #e8192c; color: #fff; border: none; padding: 10px;
+    border-radius: 6px; font-family: var(--display); font-weight: 700; font-size: 14px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: opacity 0.2s;
+  }
+  .btn-add:hover { opacity: 0.85; }
+
+  .menu-list { flex: 1; overflow-y: auto; }
+  .cat-header {
+    background: var(--surface2); padding: 8px 16px;
+    font-family: var(--display); font-size: 13px; letter-spacing: 2px;
+    color: var(--amber); text-transform: uppercase; border-bottom: 1px solid var(--border);
+  }
+  .menu-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s;
+  }
+  .menu-item:hover { background: var(--surface); }
+  .menu-item-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .menu-item-cat { font-size: 10px; font-family: var(--mono); color: var(--muted); }
+  .menu-item-price { font-family: var(--mono); color: var(--green); font-size: 13px; }
+  .btn-delete {
+    background: transparent; border: 1px solid var(--red); color: var(--red);
+    width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+    flex-shrink: 0; margin-left: 10px;
+  }
+  .btn-delete:hover { background: var(--red); color: #fff; }
+  .empty-state { text-align: center; padding: 30px 20px; color: var(--muted); font-size: 13px; font-family: var(--mono); line-height: 1.8; }
+
+  /* Order screen */
+  .order-list { flex: 1; overflow-y: auto; }
+  .order-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+  }
+  .order-item-info { flex: 1; min-width: 0; }
+  .order-item-name { font-weight: 700; font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .order-item-price { font-family: var(--mono); color: var(--muted); font-size: 11px; margin-top: 1px; }
+
+  /* Qty with direct number input */
+  .qty-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .qty-btn {
+    width: 28px; height: 28px; border-radius: 6px; border: none; font-size: 16px; font-weight: bold;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .qty-btn.minus { background: var(--surface2); color: var(--red); }
+  .qty-btn.plus { background: #e8192c; color: #fff; }
+  .qty-btn:hover { opacity: 0.8; }
+  .qty-input {
+    width: 36px; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 14px; text-align: center; border-radius: 4px;
+    padding: 4px; outline: none;
+  }
+  .qty-input:focus { border-color: var(--amber); }
+  .item-subtotal { font-family: var(--mono); font-size: 12px; color: var(--amber); min-width: 52px; text-align: right; }
+
+  /* Receipt */
+  .receipt-wrap { flex: 1; overflow-y: auto; padding: 12px; }
+  .receipt-paper { background: #fff; color: #111; border-radius: 4px; padding: 16px; font-family: var(--mono); font-size: 12px; }
+  .receipt-header { text-align: center; margin-bottom: 12px; border-bottom: 1px dashed #aaa; padding-bottom: 10px; }
+  .receipt-logo { font-size: 22px; font-family: var(--display); font-weight: 900; letter-spacing: 4px; color: #e8192c; }
+  .receipt-sub { font-size: 10px; color: #888; letter-spacing: 2px; margin-top: 2px; }
+  .receipt-date { font-size: 11px; color: #666; margin-top: 6px; }
+  .receipt-staff { font-size: 10px; color: #888; margin-top: 2px; }
+  .receipt-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+  .receipt-row.bold { font-weight: bold; border-top: 1px dashed #aaa; margin-top: 8px; padding-top: 8px; font-size: 14px; }
+  .receipt-empty { text-align: center; color: #aaa; padding: 20px 0; }
+  .receipt-footer { text-align: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed #aaa; font-size: 11px; color: #777; }
+  .receipt-addr { font-size: 10px; color: #aaa; margin-top: 4px; }
+  .btn-print {
+    width: 100%; background: var(--green); color: #000; border: none; padding: 10px;
+    border-radius: 6px; font-family: var(--display); font-weight: 700; font-size: 14px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: opacity 0.2s; margin-top: 10px;
+  }
+  .btn-print:hover { opacity: 0.85; }
+
+  /* History */
+  .history-wrap { flex: 1; overflow-y: auto; }
+  .history-item {
+    padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer;
+    transition: background 0.15s;
+  }
+  .history-item:hover { background: var(--surface); }
+  .history-top { display: flex; justify-content: space-between; align-items: center; }
+  .history-time { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .history-total { font-family: var(--mono); font-size: 15px; color: var(--green); }
+  .history-items { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+  .history-op { font-size: 11px; color: var(--blue); font-family: var(--mono); }
+
+  .footer { background: var(--surface); border-top: 1px solid var(--border); padding: 10px 16px; flex-shrink: 0; }
+  .footer-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .footer-total { display: flex; justify-content: space-between; align-items: center; }
+  .total-label { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .total-amount { font-size: 28px; font-weight: 900; color: #e8192c; letter-spacing: 1px; font-family: var(--display); }
+  .btn-checkout {
+    background: var(--amber); color: #000; border: none; padding: 10px 18px;
+    border-radius: 6px; font-family: var(--display); font-weight: 700; font-size: 13px;
+    letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: opacity 0.2s;
+  }
+  .btn-checkout:hover { opacity: 0.85; }
+  .btn-checkout:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .toast {
+    position: absolute; top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: var(--green); color: #000; padding: 8px 18px; border-radius: 20px;
+    font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: 1px;
+    opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; white-space: nowrap; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  #auth-gate {
+    position: fixed; inset: 0; background: #07080a;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 14px; color: var(--muted);
+    z-index: 9999; flex-direction: column; gap: 16px;
+  }
+  .gate-spinner {
+    width: 32px; height: 32px; border: 2px solid var(--border);
+    border-top-color: #e8192c; border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media print {
+    body > *:not(.print-only) { display: none !important; }
+    .receipt-paper { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="auth-gate">
+  <div class="gate-spinner"></div>
+  <span>Checking session...</span>
+</div>
+
+<div class="user-topbar" id="user-topbar" style="display:none;">
+  <div class="user-info">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <div>
+      <div class="user-name" id="user-name-disp">Loading...</div>
+      <div class="user-role">POS OPERATOR</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="text-align:right;">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;">MY SHIFT TOTAL</div>
+      <div style="font-family:var(--display);font-size:20px;font-weight:900;color:var(--green);line-height:1;" id="topbar-shift-total">K0.00</div>
+    </div>
+    <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+  </div>
+</div>
+
+<div class="phone" id="phone-wrap" style="display:none;">
+  <div class="header">
+    <div>
+      <div class="header-title">PA CORNER</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:1px;">
+        <div class="header-sub" style="color:var(--muted);">OPERATOR:</div>
+        <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--text);letter-spacing:1px;" id="header-operator-name">—</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="time-display" id="clock">--:--</div>
+      <div class="terminal-badge" id="term-badge">TRM-??</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button id="btn-setup" class="active" onclick="showScreen('setup')">⚙ Menu</button>
+    <button id="btn-order" onclick="showScreen('order')">🍺 Order</button>
+    <button id="btn-receipt" onclick="showScreen('receipt')">🧾 Receipt</button>
+    <button id="btn-history" onclick="showScreen('history')">📋 Log</button>
+  </div>
+
+  <!-- MENU SETUP SCREEN -->
+  <div id="screen-setup" class="screen active">
+    <div class="section-title">
+      <span>// Add Item to Menu</span>
+      <span id="menu-count" style="color:var(--amber);">0 items</span>
+    </div>
+    <div class="setup-form">
+      <div class="form-row">
+        <div class="form-field" style="flex:2">
+          <label>Item Name</label>
+          <input type="text" id="item-name" placeholder="e.g. Mosi 375ml" />
+        </div>
+        <div class="form-field" style="flex:1">
+          <label>Price (K)</label>
+          <input type="number" id="item-price" placeholder="0" min="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Category</label>
+          <select id="item-category">
+            <option value="Beers & Lagers">Beers & Lagers</option>
+            <option value="Spirits/Liquifiers">Spirits/Liquifiers</option>
+            <option value="Cocktails">Cocktails</option>
+            <option value="Cocktail Jars">Cocktail Jars</option>
+            <option value="Ciders">Ciders</option>
+            <option value="Soft Drinks">Soft Drinks</option>
+            <option value="Mixers">Mixers</option>
+            <option value="Grills">Grills</option>
+            <option value="Local Cuisine">Local Cuisine</option>
+            <option value="Fish">Fish</option>
+            <option value="Platters">Platters</option>
+            <option value="Salads">Salads</option>
+            <option value="Sides">Sides</option>
+            <option value="Burgers">Burgers</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addItem()">+ Add to Menu</button>
+    </div>
+    <div class="menu-list" id="menu-list">
+      <div class="empty-state">Loading menu...</div>
+    </div>
+  </div>
+
+  <!-- ORDER SCREEN -->
+  <div id="screen-order" class="screen">
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div class="order-list" id="order-list">
+      <div class="empty-state">Set up your menu first.</div>
+    </div>
+  </div>
+
+  <!-- RECEIPT SCREEN -->
+  <div id="screen-receipt" class="screen">
+    <div class="receipt-wrap">
+      <div class="receipt-paper" id="receipt-paper">
+        <div class="receipt-header">
+          <div class="receipt-logo">PA CORNER</div>
+          <div class="receipt-sub">— ORIGINAL —</div>
+          <div class="receipt-date" id="receipt-date"></div>
+          <div class="receipt-staff" id="receipt-staff"></div>
+          <div style="font-family:monospace;font-size:10px;color:#aaa;margin-top:4px" id="receipt-terminal"></div>
+        </div>
+        <div id="receipt-lines"><div class="receipt-empty">No items ordered.</div></div>
+        <div class="receipt-footer">
+          THANK YOU — COME AGAIN!
+          <div class="receipt-addr">Plot 87A Great East Road, Silverest – Chongwe<br>+260 972 535 444</div>
+        </div>
+      </div>
+      <button class="btn-print" onclick="window.print()">🖨 Print Receipt</button>
+    </div>
+  </div>
+
+  <!-- HISTORY SCREEN -->
+  <div id="screen-history" class="screen">
+    <div class="section-title">
+      <span>// Sales History</span>
+      <span id="history-total-val" style="color:var(--green);"></span>
+    </div>
+    <div class="history-wrap" id="history-list">
+      <div class="empty-state">No sales yet today.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-top">
+      <span id="item-count">0 items</span>
+      <span id="order-summary" style="color:var(--muted);font-size:11px;"></span>
+    </div>
+    <div class="footer-total">
+      <div>
+        <div class="total-label">Total Due</div>
+        <div class="total-amount" id="total-val">K0.00</div>
+      </div>
+      <button class="btn-checkout" id="checkout-btn" onclick="checkout()" disabled>✓ Paid &amp; Clear</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ─── PA CORNER FULL MENU ──────────────────────────────────────────────────────
+const PA_CORNER_MENU = [
+  // BEERS & LAGERS
+  { name: 'Mosi (375ml)', price: 25, category: 'Beers & Lagers' },
+  { name: 'Castle Lager (375ml)', price: 25, category: 'Beers & Lagers' },
+  { name: 'Castle Dumpy', price: 35, category: 'Beers & Lagers' },
+  { name: 'Castle Lite Canned', price: 40, category: 'Beers & Lagers' },
+  { name: 'Black Label (375ml)', price: 25, category: 'Beers & Lagers' },
+  { name: 'Black Label Dumpy', price: 35, category: 'Beers & Lagers' },
+  { name: 'Black Label Canned', price: 40, category: 'Beers & Lagers' },
+  { name: 'Heineken', price: 40, category: 'Beers & Lagers' },
+  { name: 'Stella Artois', price: 50, category: 'Beers & Lagers' },
+  { name: 'Budweiser', price: 50, category: 'Beers & Lagers' },
+  { name: 'Corona', price: 50, category: 'Beers & Lagers' },
+  { name: 'Windhoek Lager', price: 40, category: 'Beers & Lagers' },
+  { name: 'Windhoek Draught', price: 40, category: 'Beers & Lagers' },
+  { name: 'Amstel Lite', price: 40, category: 'Beers & Lagers' },
+  { name: 'Amstel Lager', price: 40, category: 'Beers & Lagers' },
+  // SPIRITS/LIQUIFIERS
+  { name: 'Smirnoff Vodka 1818 (shot)', price: 20, category: 'Spirits/Liquifiers' },
+  { name: 'Smirnoff Vodka 1818 (bottle)', price: 450, category: 'Spirits/Liquifiers' },
+  { name: 'Absolute Vodka (shot)', price: 30, category: 'Spirits/Liquifiers' },
+  { name: 'Absolute Vodka (bottle)', price: 750, category: 'Spirits/Liquifiers' },
+  { name: 'Jameson (shot)', price: 50, category: 'Spirits/Liquifiers' },
+  { name: 'Jameson (bottle)', price: 700, category: 'Spirits/Liquifiers' },
+  { name: 'Jameson Triple (shot)', price: 45, category: 'Spirits/Liquifiers' },
+  { name: 'Jameson Triple (bottle)', price: 700, category: 'Spirits/Liquifiers' },
+  { name: 'Jameson Black Barrel (shot)', price: 50, category: 'Spirits/Liquifiers' },
+  { name: 'Jameson Black Barrel (bottle)', price: 1000, category: 'Spirits/Liquifiers' },
+  { name: 'Johnnie Walker Black Barrel (shot)', price: 50, category: 'Spirits/Liquifiers' },
+  { name: 'Johnnie Walker Black Barrel (bottle)', price: 1100, category: 'Spirits/Liquifiers' },
+  { name: 'Chivas Regal (shot)', price: 50, category: 'Spirits/Liquifiers' },
+  { name: 'Chivas Regal (bottle)', price: 950, category: 'Spirits/Liquifiers' },
+  { name: 'Glen 12 Years (shot)', price: 90, category: 'Spirits/Liquifiers' },
+  { name: 'Glen 12 Years (bottle)', price: 1500, category: 'Spirits/Liquifiers' },
+  { name: 'Glen 15 Years (shot)', price: 140, category: 'Spirits/Liquifiers' },
+  { name: 'Glen 15 Years (bottle)', price: 2500, category: 'Spirits/Liquifiers' },
+  { name: 'Glen 18 Years (shot)', price: 200, category: 'Spirits/Liquifiers' },
+  { name: 'Glen 18 Years (bottle)', price: 3500, category: 'Spirits/Liquifiers' },
+  { name: 'Glenlivet Founders Reserve (shot)', price: 70, category: 'Spirits/Liquifiers' },
+  { name: 'Glenlivet Founders Reserve (bottle)', price: 1500, category: 'Spirits/Liquifiers' },
+  { name: 'Grants (shot)', price: 25, category: 'Spirits/Liquifiers' },
+  { name: 'Grants (bottle)', price: 500, category: 'Spirits/Liquifiers' },
+  { name: 'Jack Daniels (shot)', price: 50, category: 'Spirits/Liquifiers' },
+  { name: 'Jack Daniels (bottle)', price: 750, category: 'Spirits/Liquifiers' },
+  { name: 'Gordons (shot)', price: 25, category: 'Spirits/Liquifiers' },
+  { name: 'Gordons (bottle)', price: 350, category: 'Spirits/Liquifiers' },
+  { name: 'Beefeater Original (shot)', price: 40, category: 'Spirits/Liquifiers' },
+  { name: 'Beefeater Original (bottle)', price: 700, category: 'Spirits/Liquifiers' },
+  { name: 'Beefeater Pink (shot)', price: 45, category: 'Spirits/Liquifiers' },
+  { name: 'Beefeater Pink (bottle)', price: 700, category: 'Spirits/Liquifiers' },
+  { name: 'KWV 10 Years (shot)', price: 30, category: 'Spirits/Liquifiers' },
+  { name: 'KWV 10 Years (bottle)', price: 450, category: 'Spirits/Liquifiers' },
+  { name: 'Olmeca Gold (shot)', price: 30, category: 'Spirits/Liquifiers' },
+  { name: 'Olmeca Gold (bottle)', price: 750, category: 'Spirits/Liquifiers' },
+  { name: 'Olmeca Silver (shot)', price: 30, category: 'Spirits/Liquifiers' },
+  { name: 'Olmeca Silver (bottle)', price: 750, category: 'Spirits/Liquifiers' },
+  { name: 'Hennesy (shot)', price: 90, category: 'Spirits/Liquifiers' },
+  { name: 'Hennesy (bottle)', price: 1500, category: 'Spirits/Liquifiers' },
+  { name: 'Southern Comfort (shot)', price: 25, category: 'Spirits/Liquifiers' },
+  { name: 'Southern Comfort (bottle)', price: 600, category: 'Spirits/Liquifiers' },
+  { name: 'Amarula (shot)', price: 35, category: 'Spirits/Liquifiers' },
+  { name: 'Amarula (bottle)', price: 550, category: 'Spirits/Liquifiers' },
+  { name: 'Monkey Shoulder (shot)', price: 85, category: 'Spirits/Liquifiers' },
+  { name: 'Monkey Shoulder (bottle)', price: 1800, category: 'Spirits/Liquifiers' },
+  { name: 'Black Label (shot)', price: 70, category: 'Spirits/Liquifiers' },
+  { name: 'Black Label (bottle)', price: 1300, category: 'Spirits/Liquifiers' },
+  { name: 'Jagermeister (shot)', price: 40, category: 'Spirits/Liquifiers' },
+  { name: 'Jagermeister (bottle)', price: 700, category: 'Spirits/Liquifiers' },
+  // CIDERS
+  { name: 'Savannah', price: 40, category: 'Ciders' },
+  { name: 'Hunters Dry', price: 40, category: 'Ciders' },
+  { name: 'Hunters Gold', price: 40, category: 'Ciders' },
+  { name: 'Brutal Fruit Bottle', price: 40, category: 'Ciders' },
+  { name: 'Brutal Fruit Canned', price: 50, category: 'Ciders' },
+  { name: 'Flying Fist Bottle', price: 35, category: 'Ciders' },
+  { name: 'Flying Fist Canned', price: 40, category: 'Ciders' },
+  { name: 'Breezer Strawberry', price: 50, category: 'Ciders' },
+  { name: 'Breezer Black Berry', price: 50, category: 'Ciders' },
+  { name: 'Breezer Blue Berry', price: 50, category: 'Ciders' },
+  // SOFT DRINKS
+  { name: 'Coke (500ml)', price: 20, category: 'Soft Drinks' },
+  { name: 'Coke Zero (500ml)', price: 20, category: 'Soft Drinks' },
+  { name: 'Fanta (500ml)', price: 20, category: 'Soft Drinks' },
+  { name: 'Sprite (500ml)', price: 20, category: 'Soft Drinks' },
+  { name: 'Fruiticana', price: 20, category: 'Soft Drinks' },
+  { name: 'Water (500ml)', price: 15, category: 'Soft Drinks' },
+  { name: 'Water (750ml)', price: 15, category: 'Soft Drinks' },
+  { name: 'Red Bull', price: 50, category: 'Soft Drinks' },
+  // MIXERS
+  { name: 'Lemonade', price: 25, category: 'Mixers' },
+  { name: 'Ginger Ale', price: 25, category: 'Mixers' },
+  { name: 'Soda Water', price: 25, category: 'Mixers' },
+  { name: 'Tonic', price: 25, category: 'Mixers' },
+  { name: 'Lime Cordial', price: 20, category: 'Mixers' },
+  { name: 'Passion Fruit', price: 20, category: 'Mixers' },
+  // COCKTAILS
+  { name: 'Strawberry Daiquiri', price: 85, category: 'Cocktails' },
+  { name: 'Mojito', price: 85, category: 'Cocktails' },
+  { name: 'Tequilla Sunrise', price: 85, category: 'Cocktails' },
+  { name: 'Long Island', price: 110, category: 'Cocktails' },
+  { name: 'Sex on the Beach', price: 85, category: 'Cocktails' },
+  { name: 'Margarita', price: 85, category: 'Cocktails' },
+  { name: 'Kuka Blue', price: 115, category: 'Cocktails' },
+  { name: 'Surprise Cocktail', price: 100, category: 'Cocktails' },
+  { name: 'Fishbowl Cocktail', price: 200, category: 'Cocktails' },
+  // COCKTAIL JARS
+  { name: 'Iseni Munwe (Jar)', price: 200, category: 'Cocktail Jars' },
+  { name: 'Sex on The Beach (Jar)', price: 200, category: 'Cocktail Jars' },
+  { name: 'Cosmopolitan (Jar)', price: 150, category: 'Cocktail Jars' },
+  // GRILLS
+  { name: 'Plain Boerewors', price: 65, category: 'Grills' },
+  { name: 'Boerewors with Chips & Salads', price: 140, category: 'Grills' },
+  { name: 'Smoked BBQ Spare Ribs', price: 275, category: 'Grills' },
+  { name: 'Plain Pork Chops', price: 75, category: 'Grills' },
+  { name: 'Pork Chops with Chips & Salads', price: 150, category: 'Grills' },
+  { name: "Farmer's Wings", price: 145, category: 'Grills' },
+  { name: 'Plain T-Bone', price: 100, category: 'Grills' },
+  { name: 'T-Bone with Chips & Salads', price: 220, category: 'Grills' },
+  { name: 'Plain Quarter Chicken', price: 80, category: 'Grills' },
+  { name: 'Quarter Chicken with Chips & Farmers Salads', price: 160, category: 'Grills' },
+  { name: 'Plain Whole Chicken', price: 200, category: 'Grills' },
+  { name: 'Whole Chicken with Chips & Farmers Salads', price: 280, category: 'Grills' },
+  { name: 'Plain Chicken Wings', price: 100, category: 'Grills' },
+  { name: 'Chicken Wings with Chips & Salads', price: 180, category: 'Grills' },
+  { name: 'Crispy Chicken', price: 100, category: 'Grills' },
+  // LOCAL CUISINE
+  { name: 'Soup Ya Mbuzi', price: 100, category: 'Local Cuisine' },
+  { name: 'African Style Grilled Michopo', price: 100, category: 'Local Cuisine' },
+  { name: 'Vimbombo', price: 100, category: 'Local Cuisine' },
+  { name: 'Quails', price: 175, category: 'Local Cuisine' },
+  { name: 'Offals', price: 100, category: 'Local Cuisine' },
+  { name: 'Samosa - Chicken', price: 80, category: 'Local Cuisine' },
+  { name: 'Samosa - Beef', price: 80, category: 'Local Cuisine' },
+  { name: 'T-Bone with Nshima', price: 220, category: 'Local Cuisine' },
+  { name: 'Chuck with Nshima', price: 180, category: 'Local Cuisine' },
+  // FISH
+  { name: 'Plain Bream Fish', price: 100, category: 'Fish' },
+  { name: 'Plain Fish in Foil', price: 100, category: 'Fish' },
+  { name: 'Fish in Foil with Chips & Salads', price: 200, category: 'Fish' },
+  { name: 'Plain Butterfield Fish', price: 80, category: 'Fish' },
+  { name: 'Butterfield Fish with Chips & Salads', price: 160, category: 'Fish' },
+  { name: 'Deep Fried Fish with Chips & Salads', price: 150, category: 'Fish' },
+  // PLATTERS
+  { name: 'Caterpillar by Two Platter (2ppl)', price: 340, category: 'Platters' },
+  { name: 'Mfumu Yama Mfumu Platter (4-6ppl)', price: 680, category: 'Platters' },
+  { name: 'Local & Laka Traditional Platter (4-6ppl)', price: 720, category: 'Platters' },
+  // SALADS
+  { name: 'Summer Salad with Pate Cheese & Olives', price: 75, category: 'Salads' },
+  { name: 'Classic Salad with Pepper & Lettuce', price: 40, category: 'Salads' },
+  // SIDES
+  { name: 'Plain French Fries', price: 45, category: 'Sides' },
+  { name: 'French Fries with Salads', price: 75, category: 'Sides' },
+  { name: 'Loaded French Fries', price: 100, category: 'Sides' },
+  { name: 'Mixed Mild Vegetable Rice', price: 50, category: 'Sides' },
+  { name: 'Traditional Nshima', price: 35, category: 'Sides' },
+  { name: 'Nshima, Vegetable of the day & Gravy', price: 25, category: 'Sides' },
+  // BURGERS
+  { name: 'Beef Burger', price: 75, category: 'Burgers' },
+  { name: 'Beef Burger with Chips', price: 120, category: 'Burgers' },
+];
+
+// ─── SESSION CHECK ─────────────────────────────────────────────────────────────
+let session = null;
+try { session = JSON.parse(sessionStorage.getItem('pa-session')); } catch(e) {}
+
+if (!session || session.role !== 'pos') {
+  document.querySelector('#auth-gate span').textContent = 'Access denied. Redirecting...';
+  setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+} else {
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('user-topbar').style.display = 'flex';
+  document.getElementById('phone-wrap').style.display = 'flex';
+
+  const initials = (session.fname[0] + session.lname[0]).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name-disp').textContent = session.fname + ' ' + session.lname;
+  document.getElementById('header-operator-name').textContent = session.fname + ' ' + session.lname;
+
+  const tidKey = 'pa-terminal-id-' + session.username;
+  let terminalId = localStorage.getItem(tidKey);
+  if (!terminalId) {
+    terminalId = 'TRM-' + session.username.substr(0,3).toUpperCase() + '-' + Math.random().toString(36).substr(2,3).toUpperCase();
+    localStorage.setItem(tidKey, terminalId);
+  }
+  document.getElementById('term-badge').textContent = terminalId;
+
+  // Load menu — seed with Pa Corner menu if empty
+  let menu = JSON.parse(localStorage.getItem('pa-menu-' + terminalId) || 'null');
+  if (!menu || menu.length === 0) {
+    menu = PA_CORNER_MENU.map((item, i) => ({ ...item, id: i }));
+    localStorage.setItem('pa-menu-' + terminalId, JSON.stringify(menu));
+  }
+
+  let order = {}; // { menuIndex: qty }
+  let activeCategory = 'All';
+
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+  updateClock(); setInterval(updateClock, 1000);
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.getElementById('btn-' + name).classList.add('active');
+    if (name === 'order') renderOrderScreen();
+    if (name === 'receipt') renderReceipt();
+    if (name === 'history') renderHistory();
+  }
+
+  function broadcastState() {
+    const terminals = JSON.parse(localStorage.getItem('pa-terminals') || '{}');
+    let total = 0, count = 0; const items = [];
+    Object.keys(order).forEach(i => {
+      const qty = order[i]; const item = menu[parseInt(i)];
+      if (!item) return;
+      const sub = qty * item.price;
+      total += sub; count += qty; items.push({ name: item.name, price: item.price, qty, sub });
+    });
+    terminals[terminalId] = {
+      id: terminalId, operator: session.fname + ' ' + session.lname,
+      username: session.username, total, count, items, menu, lastSeen: Date.now()
+    };
+    localStorage.setItem('pa-terminals', JSON.stringify(terminals));
+    localStorage.setItem('pa-ping', Date.now().toString());
+  }
+
+  // ── MENU SETUP ──
+  function addItem() {
+    const name = document.getElementById('item-name').value.trim();
+    const price = parseFloat(document.getElementById('item-price').value);
+    const category = document.getElementById('item-category').value;
+    if (!name || isNaN(price) || price < 0) { showToast('Enter name & price!'); return; }
+    menu.push({ name, price, category });
+    localStorage.setItem('pa-menu-' + terminalId, JSON.stringify(menu));
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-price').value = '';
+    renderMenuList(); broadcastState(); showToast('✓ ' + name + ' added');
+  }
+
+  function deleteItem(i) {
+    if (order[i]) delete order[i];
+    const newOrder = {};
+    Object.keys(order).forEach(k => {
+      const ki = parseInt(k);
+      if (ki > i) newOrder[ki-1] = order[k];
+      else if (ki < i) newOrder[ki] = order[k];
+    });
+    order = newOrder;
+    menu.splice(i, 1);
+    localStorage.setItem('pa-menu-' + terminalId, JSON.stringify(menu));
+    renderMenuList(); updateFooter(); broadcastState();
+  }
+
+  function renderMenuList() {
+    const list = document.getElementById('menu-list');
+    document.getElementById('menu-count').textContent = menu.length + ' items';
+    if (!menu.length) { list.innerHTML = '<div class="empty-state">No items yet.<br>Add your first item above.</div>'; return; }
+
+    // Group by category
+    const groups = {};
+    menu.forEach((item, i) => {
+      const cat = item.category || 'Other';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push({ item, i });
+    });
+
+    let html = '';
+    Object.keys(groups).forEach(cat => {
+      html += `<div class="cat-header">${cat}</div>`;
+      groups[cat].forEach(({ item, i }) => {
+        html += `<div class="menu-item">
+          <div>
+            <div class="menu-item-name">#${i+1} ${item.name}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="menu-item-price">K${item.price.toFixed(2)}</span>
+            <button class="btn-delete" onclick="deleteItem(${i})">×</button>
+          </div>
+        </div>`;
+      });
+    });
+    list.innerHTML = html;
+  }
+
+  // ── ORDER SCREEN ──
+  function getCategories() {
+    const cats = ['All', ...new Set(menu.map(m => m.category || 'Other'))];
+    return cats;
+  }
+
+  function renderCatTabs() {
+    const cats = getCategories();
+    const tabsEl = document.getElementById('cat-tabs');
+    tabsEl.innerHTML = cats.map(c =>
+      `<button class="cat-tab${c === activeCategory ? ' active' : ''}" onclick="setCategory('${c.replace(/'/g,"\\'")}')">
+        ${c}
+      </button>`
+    ).join('');
+  }
+
+  function setCategory(cat) {
+    activeCategory = cat;
+    renderCatTabs();
+    renderOrderItems();
+  }
+
+  function renderOrderScreen() {
+    if (!menu.length) {
+      document.getElementById('order-list').innerHTML = '<div class="empty-state">Set up your menu first.</div>';
+      document.getElementById('cat-tabs').innerHTML = '';
+      return;
+    }
+    renderCatTabs();
+    renderOrderItems();
+  }
+
+  function renderOrderItems() {
+    const list = document.getElementById('order-list');
+    const filtered = menu.map((item, i) => ({ item, i }))
+      .filter(({ item }) => activeCategory === 'All' || (item.category || 'Other') === activeCategory);
+
+    if (!filtered.length) { list.innerHTML = '<div class="empty-state">No items in this category.</div>'; return; }
+
+    // Group by category if showing All
+    let html = '';
+    if (activeCategory === 'All') {
+      const groups = {};
+      filtered.forEach(({ item, i }) => {
+        const cat = item.category || 'Other';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push({ item, i });
+      });
+      Object.keys(groups).forEach(cat => {
+        html += `<div class="cat-header">${cat}</div>`;
+        groups[cat].forEach(({ item, i }) => { html += orderItemHTML(item, i); });
+      });
+    } else {
+      filtered.forEach(({ item, i }) => { html += orderItemHTML(item, i); });
+    }
+
+    list.innerHTML = html;
+  }
+
+  function orderItemHTML(item, i) {
+    const qty = order[i] || 0;
+    return `<div class="order-item" id="oi-${i}">
+      <div class="order-item-info">
+        <div class="order-item-name">#${i+1} ${item.name}</div>
+        <div class="order-item-price">K${item.price.toFixed(2)} each</div>
+      </div>
+      <div class="qty-controls">
+        <button class="qty-btn minus" onclick="changeQty(${i},-1)">−</button>
+        <input class="qty-input" type="number" value="${qty}" min="0" id="qinp-${i}"
+          onchange="setQty(${i},this.value)" onclick="this.select()">
+        <button class="qty-btn plus" onclick="changeQty(${i},1)">+</button>
+        <div class="item-subtotal" id="sub-${i}">${qty > 0 ? 'K'+(qty*item.price).toFixed(2) : '—'}</div>
+      </div>
+    </div>`;
+  }
+
+  function setQty(i, val) {
+    const newQty = Math.max(0, parseInt(val) || 0);
+    if (newQty === 0) delete order[i]; else order[i] = newQty;
+    // Update just the subtotal without full re-render
+    const subEl = document.getElementById('sub-' + i);
+    if (subEl) subEl.textContent = newQty > 0 ? 'K' + (newQty * menu[i].price).toFixed(2) : '—';
+    updateFooter(); broadcastState();
+  }
+
+  function changeQty(i, delta) {
+    const newQty = Math.max(0, (order[i] || 0) + delta);
+    if (newQty === 0) delete order[i]; else order[i] = newQty;
+    // Update input and subtotal without full re-render
+    const inp = document.getElementById('qinp-' + i);
+    const subEl = document.getElementById('sub-' + i);
+    if (inp) inp.value = newQty;
+    if (subEl) subEl.textContent = newQty > 0 ? 'K' + (newQty * menu[i].price).toFixed(2) : '—';
+    updateFooter(); broadcastState();
+  }
+
+  function updateFooter() {
+    let total = 0, count = 0;
+    Object.keys(order).forEach(i => {
+      if (menu[i]) { total += order[i] * menu[i].price; count += order[i]; }
+    });
+    document.getElementById('total-val').textContent = 'K' + total.toFixed(2);
+    document.getElementById('item-count').textContent = count === 0 ? '0 items' : `${count} item${count !== 1 ? 's' : ''}`;
+    document.getElementById('checkout-btn').disabled = count === 0;
+
+    // Summary of ordered items
+    const summaryItems = Object.keys(order).filter(i => order[i] > 0 && menu[i])
+      .map(i => `${menu[i].name.split(' ')[0]} x${order[i]}`).slice(0, 3);
+    document.getElementById('order-summary').textContent = summaryItems.join(' · ');
+  }
+
+  function updateShiftTotal() {
+    // Sum today's checkouts for this operator from pa-history
+    const todayStr = (() => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+    let history = []; try { history = JSON.parse(localStorage.getItem('pa-history')||'[]'); } catch(e){}
+    const myTotal = history.filter(r => {
+      const rd = new Date(r.time);
+      const rs = rd.getFullYear()+'-'+String(rd.getMonth()+1).padStart(2,'0')+'-'+String(rd.getDate()).padStart(2,'0');
+      return rs === todayStr && r.operator === (session.fname + ' ' + session.lname);
+    }).reduce((s,r) => s+(r.total||0), 0);
+    const el = document.getElementById('topbar-shift-total');
+    if (el) el.textContent = 'K' + myTotal.toFixed(2);
+  }
+
+  // ── RECEIPT ──
+  function renderReceipt() {
+    const now = new Date();
+    document.getElementById('receipt-date').textContent =
+      now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) +
+      ' · ' + now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('receipt-staff').textContent = 'Staff: ' + session.fname + ' ' + session.lname;
+    document.getElementById('receipt-terminal').textContent = terminalId;
+
+    const keys = Object.keys(order).filter(k => order[k] > 0 && menu[k]);
+    if (!keys.length) { document.getElementById('receipt-lines').innerHTML = '<div class="receipt-empty">No items ordered.</div>'; return; }
+
+    let total = 0, html = '';
+
+    // Group receipt by category
+    const groups = {};
+    keys.forEach(k => {
+      const cat = menu[k].category || 'Other';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(k);
+    });
+
+    Object.keys(groups).forEach(cat => {
+      html += `<div style="font-size:10px;color:#999;letter-spacing:2px;text-transform:uppercase;margin:8px 0 4px;font-family:sans-serif;">${cat}</div>`;
+      groups[cat].forEach(k => {
+        const item = menu[k]; const qty = order[k]; const sub = qty * item.price; total += sub;
+        html += `<div class="receipt-row"><span>#${parseInt(k)+1} ${item.name} ×${qty}</span><span>K${sub.toFixed(2)}</span></div>`;
+      });
+    });
+
+    html += `<div class="receipt-row bold"><span>TOTAL</span><span>K${total.toFixed(2)}</span></div>`;
+    document.getElementById('receipt-lines').innerHTML = html;
+  }
+
+  // ── HISTORY ──
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('pa-history') || '[]');
+    const wrap = document.getElementById('history-list');
+    if (!history.length) { wrap.innerHTML = '<div class="empty-state">No sales yet.</div>'; document.getElementById('history-total-val').textContent = ''; return; }
+
+    const grandTotal = history.reduce((s, h) => s + h.total, 0);
+    document.getElementById('history-total-val').textContent = 'K' + grandTotal.toFixed(2);
+
+    wrap.innerHTML = history.map(h => {
+      const d = new Date(h.time);
+      const timeStr = d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) + ' · ' + d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+      const itemSummary = h.items.map(it => `${it.name} ×${it.qty}`).slice(0,3).join(', ') + (h.items.length > 3 ? '...' : '');
+      return `<div class="history-item">
+        <div class="history-top">
+          <span class="history-time">${timeStr}</span>
+          <span class="history-total">K${h.total.toFixed(2)}</span>
+        </div>
+        <div class="history-items">${itemSummary}</div>
+        <div class="history-op">${h.operator} · ${h.terminal}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── CHECKOUT ──
+  function checkout() {
+    if (!Object.keys(order).length) return;
+    const total = Object.keys(order).filter(i => menu[i]).reduce((s,i) => s + order[i] * menu[i].price, 0);
+    const history = JSON.parse(localStorage.getItem('pa-history') || '[]');
+    history.unshift({
+      terminal: terminalId, operator: session.fname + ' ' + session.lname,
+      total,
+      items: Object.keys(order).filter(i => menu[i]).map(i => ({
+        name: menu[i].name, qty: order[i], sub: order[i]*menu[i].price
+      })),
+      time: Date.now()
+    });
+    if (history.length > 500) history.pop();
+    localStorage.setItem('pa-history', JSON.stringify(history));
+    // Save to dated key for admin calendar: pa-sales-YYYY-MM/DD
+    const _now = new Date();
+    const _dKey = 'pa-sales-' + _now.getFullYear() + '-' + String(_now.getMonth()+1).padStart(2,'0') + '/' + String(_now.getDate()).padStart(2,'0');
+    let _dayRecs = []; try { _dayRecs = JSON.parse(localStorage.getItem(_dKey) || '[]'); } catch(e) {}
+    _dayRecs.unshift(history[0]);
+    localStorage.setItem(_dKey, JSON.stringify(_dayRecs));
+    showToast('✓ Paid K' + total.toFixed(2) + '!');
+    order = {};
+    renderOrderScreen(); updateFooter(); broadcastState(); updateShiftTotal();
+  }
+
+  function logout() {
+    const terminals = JSON.parse(localStorage.getItem('pa-terminals') || '{}');
+    if (terminals[terminalId]) { terminals[terminalId].lastSeen = 0; localStorage.setItem('pa-terminals', JSON.stringify(terminals)); }
+    sessionStorage.removeItem('pa-session');
+    window.location.href = 'index.html';
+  }
+
+  // ── INIT ──
+  renderMenuList();
+  updateShiftTotal();
+  setInterval(updateShiftTotal, 60000);
+  updateFooter();
+  broadcastState();
+  setInterval(broadcastState, 10000);
+}
+</script>
+</body>
+</html>

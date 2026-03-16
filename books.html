@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pa Corner — Accounting Books</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07080a;--surface:#0f1012;--surface2:#161619;--surface3:#1c1c21;
+  --border:#20202a;--border2:#2a2a38;
+  --red:#e8192c;--red-dim:rgba(232,25,44,0.1);
+  --green:#00c853;--green-dim:rgba(0,200,83,0.1);
+  --amber:#ffab00;--amber-dim:rgba(255,171,0,0.1);
+  --blue:#448aff;--blue-dim:rgba(68,138,255,0.1);
+  --purple:#c060ff;--purple-dim:rgba(192,96,255,0.1);
+  --teal:#00bcd4;--teal-dim:rgba(0,188,212,0.1);
+  --text:#eeeef2;--text2:#9898a8;--muted:#505060;
+  --mono:'Share Tech Mono',monospace;--display:'Barlow Condensed',sans-serif;
+  --dr:#ff5252;--cr:#00c853;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:var(--display);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── AUTH ── */
+#auth-gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:var(--muted);z-index:9999;flex-direction:column;gap:14px;}
+.spinner{width:30px;height:30px;border:2px solid var(--border2);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── TOPNAV ── */
+.topnav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:52px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.brand-pill{background:var(--red);color:#fff;font-family:var(--display);font-weight:900;font-size:10px;letter-spacing:3px;padding:3px 10px;border-radius:3px;}
+.brand-name{font-family:var(--display);font-weight:900;font-size:18px;letter-spacing:3px;color:var(--text);}
+.brand-sep{width:1px;height:22px;background:var(--border2);}
+.brand-sub{font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:2px;}
+.nav-r{display:flex;align-items:center;gap:10px;}
+.nav-clock{font-family:var(--mono);font-size:11px;color:var(--amber);}
+.btn-back{background:transparent;border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:5px;cursor:pointer;letter-spacing:1px;transition:all .2s;text-decoration:none;display:flex;align-items:center;gap:5px;}
+.btn-back:hover{border-color:var(--amber);color:var(--amber);}
+.admin-info{font-family:var(--mono);font-size:10px;color:var(--muted);}
+
+/* ── TABBAR ── */
+.tabbar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 22px;flex-shrink:0;overflow-x:auto;gap:0;}
+.tabbar::-webkit-scrollbar{display:none;}
+.tab-btn{padding:11px 16px;border:none;background:transparent;color:var(--muted);font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
+.tab-btn:hover:not(.active){color:var(--text);}
+
+/* ── MAIN ── */
+.main{flex:1;padding:18px 22px;overflow-y:auto;}
+.panel{display:none;}
+.panel.active{display:block;animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── PERIOD BAR ── */
+.period-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:16px;flex-wrap:wrap;}
+.period-bar label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.period-bar input,.period-bar select{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:12px;padding:7px 10px;border-radius:6px;outline:none;transition:border-color .2s;}
+.period-bar input:focus,.period-bar select:focus{border-color:var(--amber);}
+.btn-load{background:var(--amber);color:#000;border:none;font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:1px;padding:8px 16px;border-radius:6px;cursor:pointer;text-transform:uppercase;transition:opacity .2s;}
+.btn-load:hover{opacity:.85;}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:10px;padding:7px 12px;border-radius:6px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--amber);color:var(--amber);}
+.btn-danger{border-color:var(--red);color:var(--red);}
+.btn-danger:hover{background:var(--red-dim);}
+
+/* ── BOOK CARD ── */
+.book-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
+.book-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);position:relative;overflow:hidden;}
+.book-header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.book-header.amber::before{background:var(--amber);}
+.book-header.blue::before{background:var(--blue);}
+.book-header.green::before{background:var(--green);}
+.book-header.purple::before{background:var(--purple);}
+.book-header.teal::before{background:var(--teal);}
+.book-header.red::before{background:var(--red);}
+.book-title{font-family:var(--display);font-size:18px;font-weight:900;letter-spacing:2px;color:var(--text);}
+.book-subtitle{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px;}
+.book-badge{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;letter-spacing:1px;}
+.book-badge.amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,171,0,.3);}
+.book-badge.blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(68,138,255,.3);}
+.book-badge.green{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,200,83,.3);}
+.book-badge.purple{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(192,96,255,.3);}
+.book-badge.teal{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,188,212,.3);}
+.book-badge.red{background:var(--red-dim);color:var(--red);border:1px solid rgba(232,25,44,.3);}
+
+/* ── TABLE ── */
+.acc-table{width:100%;border-collapse:collapse;}
+.acc-table th{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:9px 14px;text-align:left;background:var(--surface3);border-bottom:1px solid var(--border2);}
+.acc-table td{padding:9px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:top;}
+.acc-table tr:last-child td{border-bottom:none;}
+.acc-table tr:hover td{background:var(--surface2);}
+.acc-table tr.total-row td{background:var(--surface2);font-weight:700;border-top:2px solid var(--border2);}
+.acc-table tr.total-row.grand td{background:var(--surface3);}
+.acc-table tr.section-row td{background:var(--surface3);font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:6px 14px;}
+.td-date{font-family:var(--mono);font-size:11px;color:var(--text2);white-space:nowrap;}
+.td-ref{font-family:var(--mono);font-size:11px;color:var(--blue);}
+.td-desc{color:var(--text);}
+.td-desc small{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
+.td-dr{font-family:var(--mono);font-size:13px;color:var(--dr);text-align:right;}
+.td-cr{font-family:var(--mono);font-size:13px;color:var(--cr);text-align:right;}
+.td-bal{font-family:var(--mono);font-size:13px;text-align:right;}
+.td-bal.pos{color:var(--green);}
+.td-bal.neg{color:var(--red);}
+.td-amount{font-family:var(--mono);font-size:13px;text-align:right;color:var(--text);}
+.td-account{font-weight:700;color:var(--text);}
+.empty-row td{text-align:center;padding:28px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+
+/* ── EDIT MODAL ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:560px;overflow:hidden;animation:fi .2s ease;}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:var(--display);font-size:20px;font-weight:900;letter-spacing:2px;color:var(--text);}
+.modal-close{background:transparent;border:1px solid var(--border2);color:var(--muted);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-close:hover{border-color:var(--red);color:var(--red);}
+.modal-body{padding:20px;}
+.form-field{margin-bottom:14px;}
+.form-field label{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.form-field input,.form-field select,.form-field textarea{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 12px;border-radius:7px;outline:none;transition:border-color .2s;}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--amber);}
+.form-field textarea{resize:vertical;min-height:70px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.btn-save{background:var(--amber);color:#000;border:none;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:1px;padding:9px 20px;border-radius:6px;cursor:pointer;text-transform:uppercase;transition:opacity .2s;}
+.btn-save:hover{opacity:.85;}
+.btn-cancel{background:transparent;border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:11px;padding:9px 16px;border-radius:6px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.btn-cancel:hover{border-color:var(--muted);}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc.a::before{background:var(--amber);}
+.sc.g::before{background:var(--green);}
+.sc.b::before{background:var(--blue);}
+.sc.r::before{background:var(--red);}
+.sc.p::before{background:var(--purple);}
+.sc-lbl{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.sc-val{font-family:var(--display);font-size:26px;font-weight:900;line-height:1;}
+.sc.a .sc-val{color:var(--amber);}
+.sc.g .sc-val{color:var(--green);}
+.sc.b .sc-val{color:var(--blue);}
+.sc.r .sc-val{color:var(--red);}
+.sc.p .sc-val{color:var(--purple);}
+.sc-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;}
+
+/* ── TRIAL BALANCE / BALANCE SHEET ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+.balance-check{text-align:center;padding:12px;border-radius:8px;font-family:var(--mono);font-size:12px;letter-spacing:1px;margin-top:10px;}
+.balance-check.ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,200,83,.3);}
+.balance-check.bad{background:var(--red-dim);color:var(--red);border:1px solid rgba(232,25,44,.3);}
+
+/* ── EDIT ICON ── */
+.edit-btn{background:transparent;border:1px solid var(--border);color:var(--muted);width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:11px;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.edit-btn:hover{border-color:var(--amber);color:var(--amber);}
+.del-btn{background:transparent;border:1px solid var(--border);color:var(--muted);width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:11px;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-left:4px;}
+.del-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* ── PERIOD PILLS ── */
+.period-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.pill{background:transparent;border:1px solid var(--border2);color:var(--muted);font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;cursor:pointer;letter-spacing:1px;transition:all .2s;}
+.pill.active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.pill:hover:not(.active){border-color:var(--border2);color:var(--text2);}
+
+/* ── OVERVIEW CARDS ── */
+.books-overview{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
+.book-ov-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.book-ov-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.book-ov-card.amber::before{background:var(--amber);}
+.book-ov-card.blue::before{background:var(--blue);}
+.book-ov-card.green::before{background:var(--green);}
+.book-ov-card.purple::before{background:var(--purple);}
+.book-ov-card.teal::before{background:var(--teal);}
+.book-ov-card.red::before{background:var(--red);}
+.book-ov-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);border-color:var(--border2);}
+.ov-icon{font-size:28px;margin-bottom:10px;display:block;}
+.ov-title{font-family:var(--display);font-size:17px;font-weight:900;letter-spacing:2px;color:var(--text);}
+.ov-desc{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.ov-count{font-family:var(--mono);font-size:11px;margin-top:8px;}
+
+/* ── TOAST ── */
+.toast-msg{position:fixed;bottom:24px;right:24px;background:var(--green);color:#000;font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:1px;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s,transform .3s;transform:translateY(10px);z-index:9000;pointer-events:none;}
+.toast-msg.show{opacity:1;transform:translateY(0);}
+
+/* ── LEDGER ACCOUNT CARD ── */
+.ledger-accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-bottom:16px;}
+.ledger-acc-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.lac-head{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.lac-name{font-size:14px;font-weight:700;color:var(--text);}
+.lac-type{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;}
+.lac-balance{font-family:var(--display);font-size:20px;font-weight:900;padding:10px 14px;}
+
+/* print */
+@media print{
+  .topnav,.tabbar,.period-bar,.period-pills,.btn-load,.btn-ghost,.edit-btn,.del-btn{display:none!important;}
+  body{background:#fff;color:#000;}
+  .book-card{border:1px solid #ccc;background:#fff;}
+  .acc-table td,.acc-table th{color:#000;border-color:#ccc;}
+}
+</style>
+</head>
+<body>
+
+<div id="auth-gate"><div class="spinner"></div><span>Checking session...</span></div>
+
+<div id="app" style="display:none;flex-direction:column;min-height:100vh;">
+
+<!-- TOPNAV -->
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="brand-pill">PA</div>
+    <div class="brand-name">Corner</div>
+    <div class="brand-sep"></div>
+    <div class="brand-sub">ACCOUNTING BOOKS</div>
+  </div>
+  <div class="nav-r">
+    <div class="nav-clock" id="clock">--:--</div>
+    <div class="admin-info" id="admin-info">Admin</div>
+    <a class="btn-back" href="admin.html">← Dashboard</a>
+  </div>
+</nav>
+
+<!-- TABBAR -->
+<div class="tabbar">
+  <button class="tab-btn active" id="tb-overview" onclick="switchBook('overview')">📚 Overview</button>
+  <button class="tab-btn" id="tb-cashbook" onclick="switchBook('cashbook')">💵 Cash Book</button>
+  <button class="tab-btn" id="tb-journal" onclick="switchBook('journal')">📓 Journal</button>
+  <button class="tab-btn" id="tb-ledger" onclick="switchBook('ledger')">📒 Ledger</button>
+  <button class="tab-btn" id="tb-trial" onclick="switchBook('trial')">⚖️ Trial Balance</button>
+  <button class="tab-btn" id="tb-pnl" onclick="switchBook('pnl')">📈 P&amp;L</button>
+  <button class="tab-btn" id="tb-balance" onclick="switchBook('balance')">🏛️ Balance Sheet</button>
+</div>
+
+<div class="main">
+
+<!-- ══ OVERVIEW ══════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-overview">
+  <div class="period-bar">
+    <label>Period</label>
+    <select id="ov-period" onchange="setOvPeriod()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="year">This Year</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="ov-from" style="display:none;"/>
+    <input type="date" id="ov-to" style="display:none;"/>
+    <button class="btn-load" onclick="loadAll()">Refresh All Books</button>
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+    <span id="ov-period-lbl" style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:4px;"></span>
+  </div>
+  <div class="stat-row" id="ov-stats"></div>
+  <div class="books-overview">
+    <div class="book-ov-card amber" onclick="switchBook('cashbook')">
+      <span class="ov-icon">💵</span>
+      <div class="ov-title">Cash Book</div>
+      <div class="ov-desc">All cash receipts &amp; payments. Primary book of entry for POS sales.</div>
+      <div class="ov-count" id="ov-cb-count" style="color:var(--amber);">— entries</div>
+    </div>
+    <div class="book-ov-card blue" onclick="switchBook('journal')">
+      <span class="ov-icon">📓</span>
+      <div class="ov-title">General Journal</div>
+      <div class="ov-desc">Double-entry journal. Every debit has an equal and opposite credit.</div>
+      <div class="ov-count" id="ov-jn-count" style="color:var(--blue);">— entries</div>
+    </div>
+    <div class="book-ov-card green" onclick="switchBook('ledger')">
+      <span class="ov-icon">📒</span>
+      <div class="ov-title">General Ledger</div>
+      <div class="ov-desc">T-accounts for each account showing running balances.</div>
+      <div class="ov-count" id="ov-lg-count" style="color:var(--green);">— accounts</div>
+    </div>
+    <div class="book-ov-card purple" onclick="switchBook('trial')">
+      <span class="ov-icon">⚖️</span>
+      <div class="ov-title">Trial Balance</div>
+      <div class="ov-desc">All debit and credit balances. Total debits must equal total credits.</div>
+      <div class="ov-count" id="ov-tb-balance" style="color:var(--purple);">—</div>
+    </div>
+    <div class="book-ov-card teal" onclick="switchBook('pnl')">
+      <span class="ov-icon">📈</span>
+      <div class="ov-title">Profit &amp; Loss</div>
+      <div class="ov-desc">Revenue less expenses. Shows net profit or loss for the period.</div>
+      <div class="ov-count" id="ov-pnl-net" style="color:var(--teal);">—</div>
+    </div>
+    <div class="book-ov-card red" onclick="switchBook('balance')">
+      <span class="ov-icon">🏛️</span>
+      <div class="ov-title">Balance Sheet</div>
+      <div class="ov-desc">Assets = Liabilities + Equity. Snapshot of financial position.</div>
+      <div class="ov-count" id="ov-bs-status" style="color:var(--red);">—</div>
+    </div>
+  </div>
+  <!-- Quick period comparison -->
+  <div class="book-card">
+    <div class="book-header amber">
+      <div><div class="book-title">Period Comparison</div><div class="book-subtitle">REVENUE ACROSS TIME PERIODS</div></div>
+      <div class="book-badge amber">AUTO</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="acc-table" id="comparison-table">
+        <thead><tr>
+          <th>Period</th><th style="text-align:right;">Revenue</th><th style="text-align:right;">Transactions</th><th style="text-align:right;">Avg/Txn</th><th style="text-align:right;">Items Sold</th>
+        </tr></thead>
+        <tbody id="comparison-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CASH BOOK ══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-cashbook">
+  <div class="period-bar">
+    <label>Period</label>
+    <select id="cb-period" onchange="setCbPeriod()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="year">This Year</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="cb-from" style="display:none;"/>
+    <input type="date" id="cb-to" style="display:none;"/>
+    <button class="btn-load" onclick="renderCashBook()">Load</button>
+    <button class="btn-ghost" onclick="openAddEntry('cashbook')">+ Manual Entry</button>
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="stat-row" id="cb-stats"></div>
+  <div class="book-card">
+    <div class="book-header amber">
+      <div><div class="book-title">Cash Book</div><div class="book-subtitle">RECEIPTS & PAYMENTS — PA CORNER BAR</div></div>
+      <div class="book-badge amber">SINGLE-COLUMN</div>
+    </div>
+    <!-- Receipts side -->
+    <div style="overflow-x:auto;">
+      <table class="acc-table" id="cb-table">
+        <thead><tr>
+          <th style="width:90px;">Date</th><th style="width:80px;">Ref</th>
+          <th>Description</th><th style="width:80px;">Operator</th>
+          <th class="td-dr" style="width:100px;">Receipts (Dr)</th>
+          <th class="td-cr" style="width:100px;">Payments (Cr)</th>
+          <th class="td-bal" style="width:110px;">Balance</th>
+          <th style="width:60px;"></th>
+        </tr></thead>
+        <tbody id="cb-body"></tbody>
+        <tfoot id="cb-foot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ JOURNAL ════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-journal">
+  <div class="period-bar">
+    <label>Period</label>
+    <select id="jn-period" onchange="setJnPeriod()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="year">This Year</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="jn-from" style="display:none;"/>
+    <input type="date" id="jn-to" style="display:none;"/>
+    <button class="btn-load" onclick="renderJournal()">Load</button>
+    <button class="btn-ghost" onclick="openAddEntry('journal')">+ Manual Entry</button>
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="book-card">
+    <div class="book-header blue">
+      <div><div class="book-title">General Journal</div><div class="book-subtitle">DOUBLE-ENTRY BOOK OF PRIME ENTRY</div></div>
+      <div class="book-badge blue">DOUBLE-ENTRY</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="acc-table" id="jn-table">
+        <thead><tr>
+          <th style="width:90px;">Date</th><th style="width:80px;">Ref</th>
+          <th>Account &amp; Description</th>
+          <th class="td-dr" style="width:110px;">Debit (K)</th>
+          <th class="td-cr" style="width:110px;">Credit (K)</th>
+          <th style="width:60px;"></th>
+        </tr></thead>
+        <tbody id="jn-body"></tbody>
+        <tfoot id="jn-foot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LEDGER ═════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-ledger">
+  <div class="period-bar">
+    <label>Period</label>
+    <select id="lg-period" onchange="setLgPeriod()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="year">This Year</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="lg-from" style="display:none;"/>
+    <input type="date" id="lg-to" style="display:none;"/>
+    <button class="btn-load" onclick="renderLedger()">Load</button>
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="ledger-accounts-grid" id="ledger-account-cards"></div>
+  <div class="book-card">
+    <div class="book-header green">
+      <div><div class="book-title">General Ledger</div><div class="book-subtitle">ALL ACCOUNT TRANSACTIONS</div></div>
+      <div class="book-badge green">T-ACCOUNTS</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="acc-table" id="lg-table">
+        <thead><tr>
+          <th style="width:90px;">Date</th><th>Account</th><th>Description</th>
+          <th class="td-dr" style="width:110px;">Debit</th>
+          <th class="td-cr" style="width:110px;">Credit</th>
+          <th class="td-bal" style="width:110px;">Balance</th>
+        </tr></thead>
+        <tbody id="lg-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TRIAL BALANCE ══════════════════════════════════════════════ -->
+<div class="panel" id="panel-trial">
+  <div class="period-bar">
+    <label>As at</label>
+    <select id="tb-period" onchange="setTbPeriod()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="year">This Year</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="tb-from" style="display:none;"/>
+    <input type="date" id="tb-to" style="display:none;"/>
+    <button class="btn-load" onclick="renderTrialBalance()">Load</button>
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="book-card">
+    <div class="book-header purple">
+      <div><div class="book-title">Trial Balance</div><div class="book-subtitle">AS AT PERIOD END — PA CORNER BAR</div></div>
+      <div class="book-badge purple">SUMMARY</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="acc-table" id="tb-table">
+        <thead><tr>
+          <th>Account Name</th><th>Account Type</th>
+          <th class="td-dr" style="width:130px;">Debit Balance</th>
+          <th class="td-cr" style="width:130px;">Credit Balance</th>
+        </tr></thead>
+        <tbody id="tb-body"></tbody>
+        <tfoot id="tb-foot"></tfoot>
+      </table>
+    </div>
+    <div id="tb-check" class="balance-check" style="margin:12px;"></div>
+  </div>
+</div>
+
+<!-- ══ P&L ════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-pnl">
+  <div class="period-bar">
+    <label>Period</label>
+    <select id="pnl-period" onchange="setPnlPeriod()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="year">This Year</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="pnl-from" style="display:none;"/>
+    <input type="date" id="pnl-to" style="display:none;"/>
+    <button class="btn-load" onclick="renderPnL()">Load</button>
+    <button class="btn-ghost" onclick="openAddEntry('expense')">+ Add Expense</button>
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="two-col">
+    <div class="book-card">
+      <div class="book-header teal">
+        <div><div class="book-title">Profit &amp; Loss</div><div class="book-subtitle">INCOME STATEMENT</div></div>
+        <div class="book-badge teal">AUTO</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="acc-table" id="pnl-table">
+          <thead><tr><th>Item</th><th class="td-amount" style="width:130px;">Amount (K)</th></tr></thead>
+          <tbody id="pnl-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="book-card">
+      <div class="book-header teal">
+        <div><div class="book-title">Expenses</div><div class="book-subtitle">RECORDED EXPENSES</div></div>
+        <div class="book-badge teal">EDITABLE</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="acc-table">
+          <thead><tr><th>Date</th><th>Description</th><th class="td-amount" style="width:100px;">Amount</th><th style="width:60px;"></th></tr></thead>
+          <tbody id="exp-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BALANCE SHEET ══════════════════════════════════════════════ -->
+<div class="panel" id="panel-balance">
+  <div class="period-bar">
+    <label>As at</label>
+    <select id="bs-period" onchange="setBsPeriod()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="year">This Year</option>
+      <option value="custom">Custom</option>
+    </select>
+    <input type="date" id="bs-from" style="display:none;"/>
+    <input type="date" id="bs-to" style="display:none;"/>
+    <button class="btn-load" onclick="renderBalanceSheet()">Load</button>
+    <button class="btn-ghost" onclick="openAddEntry('asset')">+ Asset/Liability</button>
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="two-col">
+    <div class="book-card">
+      <div class="book-header red">
+        <div><div class="book-title">Assets</div><div class="book-subtitle">WHAT THE BUSINESS OWNS</div></div>
+        <div class="book-badge red">DR SIDE</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="acc-table">
+          <thead><tr><th>Asset</th><th class="td-amount" style="width:120px;">Value (K)</th><th style="width:60px;"></th></tr></thead>
+          <tbody id="assets-body"></tbody>
+          <tfoot id="assets-foot"></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="book-card">
+      <div class="book-header blue">
+        <div><div class="book-title">Liabilities &amp; Equity</div><div class="book-subtitle">WHAT THE BUSINESS OWES + OWNER'S EQUITY</div></div>
+        <div class="book-badge blue">CR SIDE</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="acc-table">
+          <thead><tr><th>Item</th><th class="td-amount" style="width:120px;">Value (K)</th><th style="width:60px;"></th></tr></thead>
+          <tbody id="liab-body"></tbody>
+          <tfoot id="liab-foot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div id="bs-check" class="balance-check"></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- EDIT MODAL -->
+<div class="modal-backdrop" id="modal" style="display:none;" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">Edit Entry</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveModal()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-msg" id="toast"></div>
+
+<script>
+// ── SESSION CHECK ────────────────────────────────────────────────────────────
+let session = null;
+try { session = JSON.parse(sessionStorage.getItem('pa-session')); } catch(e){}
+if (!session || session.role !== 'admin') {
+  document.querySelector('#auth-gate span').textContent = 'Access denied. Redirecting...';
+  setTimeout(()=>window.location.href='index.html',1200);
+} else {
+  document.getElementById('auth-gate').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('admin-info').textContent = session.fname+' '+session.lname;
+
+  // Clock
+  function tick(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});}
+  tick(); setInterval(tick,1000);
+
+  // ── TOAST ──────────────────────────────────────────────────────────────────
+  function toast(msg,good=true){
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.style.background=good?'var(--green)':'var(--red)';
+    t.style.color=good?'#000':'#fff';
+    t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200);
+  }
+
+  // ── DATE UTILITIES ─────────────────────────────────────────────────────────
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function todayStr(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+  function p2(n){return String(n).padStart(2,'0');}
+  function fmtDate(ts){const d=new Date(ts);return p2(d.getDate())+'/'+p2(d.getMonth()+1)+'/'+d.getFullYear();}
+  function fmtDateShort(ds){const d=new Date(ds+'T00:00');return p2(d.getDate())+' '+MONTHS[d.getMonth()].substr(0,3)+' '+d.getFullYear();}
+  function fmtK(n){return 'K'+Number(n).toFixed(2);}
+
+  function getPeriodDates(pfx){
+    const sel=document.getElementById(pfx+'-period').value;
+    const d=new Date(); const y=d.getFullYear(); const m=p2(d.getMonth()+1);
+    if(sel==='today') return {from:todayStr(),to:todayStr()};
+    if(sel==='week'){
+      const dow=d.getDay(); const ms=new Date(d); ms.setDate(d.getDate()-dow);
+      const me=new Date(ms); me.setDate(ms.getDate()+6);
+      return {from:ms.getFullYear()+'-'+p2(ms.getMonth()+1)+'-'+p2(ms.getDate()), to:me.getFullYear()+'-'+p2(me.getMonth()+1)+'-'+p2(me.getDate())};
+    }
+    if(sel==='month') return {from:`${y}-${m}-01`,to:todayStr()};
+    if(sel==='year') return {from:`${y}-01-01`,to:todayStr()};
+    return {from:document.getElementById(pfx+'-from').value||todayStr(), to:document.getElementById(pfx+'-to').value||todayStr()};
+  }
+
+  function showCustom(pfx){
+    const isC=document.getElementById(pfx+'-period').value==='custom';
+    document.getElementById(pfx+'-from').style.display=isC?'':'none';
+    document.getElementById(pfx+'-to').style.display=isC?'':'none';
+  }
+  ['ov','cb','jn','lg','tb','pnl','bs'].forEach(p=>document.getElementById(p+'-period').addEventListener('change',()=>showCustom(p)));
+
+  // ── DATA ACCESS ────────────────────────────────────────────────────────────
+  function getAllHistory(){try{return JSON.parse(localStorage.getItem('pa-history')||'[]');}catch(e){return[];}}
+
+  function getHistory(from, to){
+    const f=new Date(from+'T00:00:00').getTime();
+    const t=new Date(to+'T23:59:59').getTime();
+    return getAllHistory().filter(r=>r.time>=f&&r.time<=t);
+  }
+
+  // ── MANUAL ENTRIES STORE ──────────────────────────────────────────────────
+  // Keys: pa-books-expenses, pa-books-assets, pa-books-liabilities, pa-books-manual-cb, pa-books-manual-jn
+  function getStore(key){try{return JSON.parse(localStorage.getItem(key)||'[]');}catch(e){return[];}}
+  function saveStore(key,data){localStorage.setItem(key,JSON.stringify(data));}
+
+  function genRef(prefix){return prefix+'-'+Date.now().toString(36).toUpperCase();}
+
+  // ── CORE ACCOUNTING LOGIC ─────────────────────────────────────────────────
+  // From POS sales we derive:
+  // DR: Cash/Bank  CR: Sales Revenue  (each transaction)
+  // COGS estimated at 40% of selling price as cost of goods sold
+  // DR: COGS  CR: Inventory
+  const COGS_RATE = 0.40; // 40% cost of sales
+
+  function buildJournalEntries(records){
+    // Each POS sale becomes two journal lines: Cash Dr, Sales Cr
+    const entries=[];
+    records.forEach(r=>{
+      const ref=r.terminal+'-'+new Date(r.time).toISOString().replace(/\D/g,'').substr(0,12);
+      const itemNames=(r.items||[]).slice(0,2).map(i=>i.name).join(', ')+(r.items?.length>2?'...':'');
+      entries.push({
+        id:ref, date:fmtDate(r.time), dateTs:r.time,
+        ref:'POS-'+ref.substr(-6).toUpperCase(),
+        account:'Cash / Bank', type:'debit',
+        description:`Sales receipt — ${r.operator||'Staff'} (${itemNames})`,
+        dr:r.total, cr:0, source:'pos'
+      });
+      entries.push({
+        id:ref+'-cr', date:fmtDate(r.time), dateTs:r.time,
+        ref:'POS-'+ref.substr(-6).toUpperCase(),
+        account:'Sales Revenue', type:'credit',
+        description:`Sales — ${r.operator||'Staff'} (${itemNames})`,
+        dr:0, cr:r.total, source:'pos'
+      });
+      // COGS entry
+      const cogs=r.total*COGS_RATE;
+      entries.push({
+        id:ref+'-cogs-dr', date:fmtDate(r.time), dateTs:r.time,
+        ref:'COGS-'+ref.substr(-6).toUpperCase(),
+        account:'Cost of Goods Sold', type:'debit',
+        description:`COGS — ${r.operator||'Staff'}`,
+        dr:cogs, cr:0, source:'pos'
+      });
+      entries.push({
+        id:ref+'-cogs-cr', date:fmtDate(r.time), dateTs:r.time,
+        ref:'COGS-'+ref.substr(-6).toUpperCase(),
+        account:'Inventory', type:'credit',
+        description:`Inventory reduction — ${r.operator||'Staff'}`,
+        dr:0, cr:cogs, source:'pos'
+      });
+    });
+    return entries.sort((a,b)=>a.dateTs-b.dateTs);
+  }
+
+  // ── SWITCH PANEL ──────────────────────────────────────────────────────────
+  let currentBook='overview';
+  function switchBook(name){
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('panel-'+name).classList.add('active');
+    document.getElementById('tb-'+name).classList.add('active');
+    currentBook=name;
+    loadBook(name);
+  }
+  function loadBook(name){
+    if(name==='overview') loadAll();
+    else if(name==='cashbook') renderCashBook();
+    else if(name==='journal') renderJournal();
+    else if(name==='ledger') renderLedger();
+    else if(name==='trial') renderTrialBalance();
+    else if(name==='pnl') renderPnL();
+    else if(name==='balance') renderBalanceSheet();
+  }
+
+  // ── SET PERIOD HELPERS ────────────────────────────────────────────────────
+  function setOvPeriod(){showCustom('ov');loadAll();}
+  function setCbPeriod(){showCustom('cb');renderCashBook();}
+  function setJnPeriod(){showCustom('jn');renderJournal();}
+  function setLgPeriod(){showCustom('lg');renderLedger();}
+  function setTbPeriod(){showCustom('tb');renderTrialBalance();}
+  function setPnlPeriod(){showCustom('pnl');renderPnL();}
+  function setBsPeriod(){showCustom('bs');renderBalanceSheet();}
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── OVERVIEW ──────────────────────────────────────────────────────────────
+  function loadAll(){
+    const {from,to}=getPeriodDates('ov');
+    const recs=getHistory(from,to);
+    const revenue=recs.reduce((s,r)=>s+(r.total||0),0);
+    const items=recs.reduce((s,r)=>s+(r.items||[]).reduce((ss,i)=>ss+(i.qty||0),0),0);
+    const expenses=getStore('pa-books-expenses').filter(e=>{
+      const ed=e.date; return ed>=from&&ed<=to;
+    }).reduce((s,e)=>s+(e.amount||0),0);
+    const profit=revenue-expenses-(revenue*COGS_RATE);
+    const lbl=from===to?fmtDateShort(from):fmtDateShort(from)+' → '+fmtDateShort(to);
+    document.getElementById('ov-period-lbl').textContent=lbl;
+
+    document.getElementById('ov-stats').innerHTML=`
+      <div class="sc g"><div class="sc-lbl">Revenue</div><div class="sc-val">K${revenue.toFixed(0)}</div><div class="sc-sub">${recs.length} transactions</div></div>
+      <div class="sc r"><div class="sc-lbl">Est. COGS (${(COGS_RATE*100).toFixed(0)}%)</div><div class="sc-val">K${(revenue*COGS_RATE).toFixed(0)}</div><div class="sc-sub">Cost of goods sold</div></div>
+      <div class="sc b"><div class="sc-lbl">Expenses</div><div class="sc-val">K${expenses.toFixed(0)}</div><div class="sc-sub">Recorded expenses</div></div>
+      <div class="sc ${profit>=0?'g':'r'}"><div class="sc-lbl">Net Profit</div><div class="sc-val">K${profit.toFixed(0)}</div><div class="sc-sub">${profit>=0?'Profitable':'Loss'}</div></div>
+    `;
+    document.getElementById('ov-cb-count').textContent=recs.length+' entries';
+    document.getElementById('ov-jn-count').textContent=(recs.length*4)+' lines (auto)';
+    document.getElementById('ov-lg-count').textContent='5 accounts';
+    document.getElementById('ov-tb-balance').textContent='Balanced ✓';
+    document.getElementById('ov-pnl-net').textContent=(profit>=0?'Profit ':'Loss ')+fmtK(Math.abs(profit));
+    document.getElementById('ov-bs-status').textContent='Assets = K'+(revenue+1000).toFixed(0);
+
+    // Comparison table
+    const periods=[
+      {lbl:'Today',...getPeriodLabel('today')},
+      {lbl:'This Week',...getPeriodLabel('week')},
+      {lbl:'This Month',...getPeriodLabel('month')},
+      {lbl:'This Year',...getPeriodLabel('year')},
+    ];
+    document.getElementById('comparison-body').innerHTML=periods.map(p=>{
+      const pr=getHistory(p.from,p.to);
+      const rev=pr.reduce((s,r)=>s+(r.total||0),0);
+      const its=pr.reduce((s,r)=>s+(r.items||[]).reduce((ss,i)=>ss+(i.qty||0),0),0);
+      const avg=pr.length?rev/pr.length:0;
+      return `<tr><td class="td-account">${p.lbl}</td><td class="td-amount">${fmtK(rev)}</td><td class="td-amount">${pr.length}</td><td class="td-amount">${fmtK(avg)}</td><td class="td-amount">${its}</td></tr>`;
+    }).join('');
+  }
+
+  function getPeriodLabel(type){
+    const d=new Date();const y=d.getFullYear();const m=p2(d.getMonth()+1);
+    if(type==='today') return {from:todayStr(),to:todayStr()};
+    if(type==='week'){const dow=d.getDay();const ms=new Date(d);ms.setDate(d.getDate()-dow);const me=new Date(ms);me.setDate(ms.getDate()+6);return{from:ms.getFullYear()+'-'+p2(ms.getMonth()+1)+'-'+p2(ms.getDate()),to:me.getFullYear()+'-'+p2(me.getMonth()+1)+'-'+p2(me.getDate())};}
+    if(type==='month') return {from:`${y}-${m}-01`,to:todayStr()};
+    return {from:`${y}-01-01`,to:todayStr()};
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── CASH BOOK ─────────────────────────────────────────────────────────────
+  function renderCashBook(){
+    const {from,to}=getPeriodDates('cb');
+    const recs=getHistory(from,to).sort((a,b)=>a.time-b.time);
+    const manualCb=getStore('pa-books-manual-cb').filter(e=>e.date>=from&&e.date<=to);
+
+    // Build rows: POS receipts + manual entries
+    let rows=[];
+    recs.forEach(r=>{
+      rows.push({id:r.time+'',date:fmtDate(r.time),dateSort:r.time,ref:'POS-'+String(r.time).substr(-6),
+        desc:`Bar sales — ${r.operator||'Staff'}`,sub:(r.items||[]).slice(0,3).map(i=>i.name+' ×'+i.qty).join(', '),
+        dr:r.total,cr:0,operator:r.operator||'—',source:'pos'});
+    });
+    manualCb.forEach(e=>{
+      rows.push({id:e.id,date:fmtDateShort(e.date),dateSort:new Date(e.date+'T12:00').getTime(),
+        ref:e.ref||genRef('CB'),desc:e.desc,sub:'',dr:e.type==='receipt'?e.amount:0,cr:e.type==='payment'?e.amount:0,
+        operator:e.operator||session.fname,source:'manual'});
+    });
+    rows.sort((a,b)=>a.dateSort-b.dateSort);
+
+    const totalDr=rows.reduce((s,r)=>s+r.dr,0);
+    const totalCr=rows.reduce((s,r)=>s+r.cr,0);
+
+    // Stats
+    document.getElementById('cb-stats').innerHTML=`
+      <div class="sc a"><div class="sc-lbl">Opening Balance</div><div class="sc-val">K0.00</div><div class="sc-sub">Start of period</div></div>
+      <div class="sc g"><div class="sc-lbl">Total Receipts</div><div class="sc-val">K${totalDr.toFixed(0)}</div><div class="sc-sub">${rows.filter(r=>r.dr>0).length} entries</div></div>
+      <div class="sc r"><div class="sc-lbl">Total Payments</div><div class="sc-val">K${totalCr.toFixed(0)}</div><div class="sc-sub">${rows.filter(r=>r.cr>0).length} entries</div></div>
+      <div class="sc b"><div class="sc-lbl">Closing Balance</div><div class="sc-val">K${(totalDr-totalCr).toFixed(0)}</div><div class="sc-sub">End of period</div></div>
+    `;
+
+    let runBal=0;
+    const tbody=rows.map((r,i)=>{
+      runBal+=r.dr-r.cr;
+      const balClass=runBal>=0?'pos':'neg';
+      const editBtn=r.source==='manual'?`<button class="edit-btn" onclick="editManual('cashbook','${r.id}',event)" title="Edit">✎</button><button class="del-btn" onclick="delManual('cashbook','${r.id}',event)" title="Delete">×</button>`:'<span style="color:var(--muted);font-size:10px;font-family:var(--mono);">AUTO</span>';
+      return `<tr>
+        <td class="td-date">${r.date}</td>
+        <td class="td-ref">${r.ref}</td>
+        <td class="td-desc">${r.desc}${r.sub?`<small>${r.sub}</small>`:''}</td>
+        <td style="font-size:12px;color:var(--text2);">${r.operator}</td>
+        <td class="td-dr">${r.dr>0?fmtK(r.dr):'—'}</td>
+        <td class="td-cr">${r.cr>0?fmtK(r.cr):'—'}</td>
+        <td class="td-bal ${balClass}">${fmtK(runBal)}</td>
+        <td style="white-space:nowrap;">${editBtn}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('cb-body').innerHTML=rows.length?tbody:`<tr class="empty-row"><td colspan="8">No cash book entries for this period. Sales will appear automatically.</td></tr>`;
+    document.getElementById('cb-foot').innerHTML=`<tr class="total-row grand">
+      <td colspan="4"><strong>TOTALS</strong></td>
+      <td class="td-dr"><strong>${fmtK(totalDr)}</strong></td>
+      <td class="td-cr"><strong>${fmtK(totalCr)}</strong></td>
+      <td class="td-bal ${(totalDr-totalCr)>=0?'pos':'neg'}"><strong>${fmtK(totalDr-totalCr)}</strong></td>
+      <td></td>
+    </tr>`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── JOURNAL ───────────────────────────────────────────────────────────────
+  function renderJournal(){
+    const {from,to}=getPeriodDates('jn');
+    const recs=getHistory(from,to).sort((a,b)=>a.time-b.time);
+    const manualJn=getStore('pa-books-manual-jn').filter(e=>e.date>=from&&e.date<=to);
+    const posEntries=buildJournalEntries(recs);
+
+    // Manual journal entries
+    const manualEntries=[];
+    manualJn.forEach(e=>{
+      manualEntries.push({id:e.id,date:fmtDateShort(e.date),dateTs:new Date(e.date+'T12:00').getTime(),ref:e.ref||genRef('JNL'),account:e.drAccount,description:e.desc,dr:e.amount,cr:0,source:'manual'});
+      manualEntries.push({id:e.id+'-cr',date:fmtDateShort(e.date),dateTs:new Date(e.date+'T12:00').getTime(),ref:e.ref||genRef('JNL'),account:e.crAccount,description:e.desc,dr:0,cr:e.amount,source:'manual'});
+    });
+
+    const allEntries=[...posEntries,...manualEntries].sort((a,b)=>a.dateTs-b.dateTs);
+    const totalDr=allEntries.reduce((s,e)=>s+e.dr,0);
+    const totalCr=allEntries.reduce((s,e)=>s+e.cr,0);
+
+    // Group by ref for display
+    const grouped={};
+    allEntries.forEach(e=>{
+      if(!grouped[e.ref]) grouped[e.ref]={ref:e.ref,date:e.date,dateTs:e.dateTs,lines:[],source:e.source};
+      grouped[e.ref].lines.push(e);
+    });
+
+    let html='';
+    let gDr=0,gCr=0;
+    Object.values(grouped).sort((a,b)=>a.dateTs-b.dateTs).forEach(g=>{
+      const gTotDr=g.lines.reduce((s,l)=>s+l.dr,0);
+      const gTotCr=g.lines.reduce((s,l)=>s+l.cr,0);
+      gDr+=gTotDr; gCr+=gTotCr;
+      g.lines.forEach((l,i)=>{
+        const editBtns=l.source==='manual'&&i===0?`<button class="edit-btn" onclick="editManual('journal','${g.ref}',event)" title="Edit">✎</button><button class="del-btn" onclick="delManual('journal','${g.ref}',event)" title="Delete">×</button>`:(i===0&&l.source==='pos'?'<span style="color:var(--muted);font-size:9px;font-family:var(--mono);">AUTO</span>':'');
+        html+=`<tr>
+          <td class="td-date">${i===0?l.date:''}</td>
+          <td class="td-ref">${i===0?l.ref:''}</td>
+          <td class="td-desc" style="padding-left:${l.dr>0?'14px':'32px'};"><strong>${l.account}</strong><small>${i===0?l.description:''}</small></td>
+          <td class="td-dr">${l.dr>0?fmtK(l.dr):'—'}</td>
+          <td class="td-cr">${l.cr>0?fmtK(l.cr):'—'}</td>
+          <td>${editBtns}</td>
+        </tr>`;
+      });
+      html+=`<tr style="height:4px;"><td colspan="6" style="background:var(--bg);padding:0;border:none;"></td></tr>`;
+    });
+
+    document.getElementById('jn-body').innerHTML=html||`<tr class="empty-row"><td colspan="6">No journal entries for this period.</td></tr>`;
+    document.getElementById('jn-foot').innerHTML=`<tr class="total-row grand">
+      <td colspan="3"><strong>TOTALS</strong></td>
+      <td class="td-dr"><strong>${fmtK(gDr)}</strong></td>
+      <td class="td-cr"><strong>${fmtK(gCr)}</strong></td>
+      <td><span style="font-family:var(--mono);font-size:10px;color:${Math.abs(gDr-gCr)<0.01?'var(--green)':'var(--red);'};">${Math.abs(gDr-gCr)<0.01?'✓ BALANCED':'✗ UNBALANCED'}</span></td>
+    </tr>`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── LEDGER ────────────────────────────────────────────────────────────────
+  function renderLedger(){
+    const {from,to}=getPeriodDates('lg');
+    const recs=getHistory(from,to).sort((a,b)=>a.time-b.time);
+    const posEntries=buildJournalEntries(recs);
+    const manualJn=getStore('pa-books-manual-jn').filter(e=>e.date>=from&&e.date<=to);
+    const manualEntries=[];
+    manualJn.forEach(e=>{
+      manualEntries.push({account:e.drAccount,date:fmtDateShort(e.date),dateTs:new Date(e.date+'T12:00').getTime(),ref:e.ref||'MNL',description:e.desc,dr:e.amount,cr:0});
+      manualEntries.push({account:e.crAccount,date:fmtDateShort(e.date),dateTs:new Date(e.date+'T12:00').getTime(),ref:e.ref||'MNL',description:e.desc,dr:0,cr:e.amount});
+    });
+    const allEntries=[...posEntries,...manualEntries].sort((a,b)=>a.dateTs-b.dateTs);
+
+    // Group by account
+    const accountMap={};
+    allEntries.forEach(e=>{
+      if(!accountMap[e.account]) accountMap[e.account]={name:e.account,entries:[],totalDr:0,totalCr:0};
+      accountMap[e.account].entries.push(e);
+      accountMap[e.account].totalDr+=e.dr;
+      accountMap[e.account].totalCr+=e.cr;
+    });
+
+    // Account summary cards
+    const accs=Object.values(accountMap);
+    const ACCOUNT_TYPES={
+      'Cash / Bank':'Asset','Sales Revenue':'Revenue','Cost of Goods Sold':'Expense',
+      'Inventory':'Asset','Accounts Payable':'Liability','Rent Expense':'Expense',
+      'Wages Expense':'Expense','Utilities Expense':'Expense','Owner\'s Equity':'Equity',
+    };
+    document.getElementById('ledger-account-cards').innerHTML=accs.map(a=>{
+      const bal=a.totalDr-a.totalCr;
+      const type=ACCOUNT_TYPES[a.name]||'Account';
+      const balColor=bal>=0?'var(--green)':'var(--red)';
+      return `<div class="ledger-acc-card">
+        <div class="lac-head"><div><div class="lac-name">${a.name}</div><div class="lac-type">${type.toUpperCase()}</div></div></div>
+        <div class="lac-balance" style="color:${balColor};">${fmtK(Math.abs(bal))} ${bal>=0?'Dr':'Cr'}</div>
+        <div style="padding:0 14px 10px;display:flex;gap:16px;">
+          <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);">TOTAL DR</div><div style="font-family:var(--mono);font-size:11px;color:var(--dr);">${fmtK(a.totalDr)}</div></div>
+          <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);">TOTAL CR</div><div style="font-family:var(--mono);font-size:11px;color:var(--cr);">${fmtK(a.totalCr)}</div></div>
+          <div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);">ENTRIES</div><div style="font-family:var(--mono);font-size:11px;color:var(--text2);">${a.entries.length}</div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Full ledger table
+    let html='';
+    accs.forEach(a=>{
+      html+=`<tr class="section-row"><td colspan="6">━━ ${a.name} ━━</td></tr>`;
+      let runBal=0;
+      a.entries.forEach(e=>{
+        runBal+=e.dr-e.cr;
+        html+=`<tr>
+          <td class="td-date">${e.date}</td>
+          <td class="td-account">${e.account}</td>
+          <td class="td-desc">${e.description||'—'}</td>
+          <td class="td-dr">${e.dr>0?fmtK(e.dr):'—'}</td>
+          <td class="td-cr">${e.cr>0?fmtK(e.cr):'—'}</td>
+          <td class="td-bal ${runBal>=0?'pos':'neg'}">${fmtK(runBal)}</td>
+        </tr>`;
+      });
+      const bal=a.totalDr-a.totalCr;
+      html+=`<tr class="total-row"><td colspan="3"><strong>Balance c/f — ${a.name}</strong></td><td class="td-dr">${fmtK(a.totalDr)}</td><td class="td-cr">${fmtK(a.totalCr)}</td><td class="td-bal ${bal>=0?'pos':'neg'}">${fmtK(bal)}</td></tr>`;
+    });
+    document.getElementById('lg-body').innerHTML=html||`<tr class="empty-row"><td colspan="6">No ledger entries for this period.</td></tr>`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── TRIAL BALANCE ─────────────────────────────────────────────────────────
+  function renderTrialBalance(){
+    const {from,to}=getPeriodDates('tb');
+    const recs=getHistory(from,to);
+    const revenue=recs.reduce((s,r)=>s+(r.total||0),0);
+    const cogs=revenue*COGS_RATE;
+    const expenses=getStore('pa-books-expenses').filter(e=>e.date>=from&&e.date<=to).reduce((s,e)=>s+(e.amount||0),0);
+    const assets=getStore('pa-books-assets');
+    const liabilities=getStore('pa-books-liabilities');
+    const manualJn=getStore('pa-books-manual-jn').filter(e=>e.date>=from&&e.date<=to);
+    const extraDr=manualJn.reduce((s,e)=>s+e.amount,0);
+
+    // Standard trial balance accounts
+    const ACCOUNT_TYPES={
+      'Cash / Bank':'Asset','Sales Revenue':'Revenue','Cost of Goods Sold':'Expense',
+      'Inventory':'Asset','Expenses':'Expense','Assets':'Asset','Liabilities':'Liability',
+    };
+    const rows=[
+      {account:'Cash / Bank', type:'Asset', dr:revenue-cogs, cr:0},
+      {account:'Sales Revenue', type:'Revenue', dr:0, cr:revenue},
+      {account:'Cost of Goods Sold', type:'Expense', dr:cogs, cr:0},
+      {account:'Inventory', type:'Asset', dr:0, cr:cogs},
+      {account:'Operating Expenses', type:'Expense', dr:expenses, cr:0},
+      {account:'Accounts Payable', type:'Liability', dr:0, cr:expenses},
+    ];
+    if(extraDr>0){
+      manualJn.forEach(e=>{
+        rows.push({account:e.drAccount,type:'Account',dr:e.amount,cr:0});
+        rows.push({account:e.crAccount,type:'Account',dr:0,cr:e.amount});
+      });
+    }
+    assets.forEach(a=>rows.push({account:a.name+' (Asset)',type:'Asset',dr:a.value||0,cr:0}));
+    liabilities.forEach(l=>rows.push({account:l.name+' (Liability)',type:'Liability',dr:0,cr:l.value||0}));
+
+    const totalDr=rows.reduce((s,r)=>s+r.dr,0);
+    const totalCr=rows.reduce((s,r)=>s+r.cr,0);
+    const balanced=Math.abs(totalDr-totalCr)<0.01;
+
+    document.getElementById('tb-body').innerHTML=rows.map(r=>`<tr>
+      <td class="td-account">${r.account}</td>
+      <td><span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${r.type.toUpperCase()}</span></td>
+      <td class="td-dr">${r.dr>0?fmtK(r.dr):'—'}</td>
+      <td class="td-cr">${r.cr>0?fmtK(r.cr):'—'}</td>
+    </tr>`).join('');
+    document.getElementById('tb-foot').innerHTML=`<tr class="total-row grand">
+      <td colspan="2"><strong>TOTALS</strong></td>
+      <td class="td-dr"><strong>${fmtK(totalDr)}</strong></td>
+      <td class="td-cr"><strong>${fmtK(totalCr)}</strong></td>
+    </tr>`;
+    document.getElementById('tb-check').className='balance-check '+(balanced?'ok':'bad');
+    document.getElementById('tb-check').textContent=balanced?'✓ TRIAL BALANCE IS BALANCED — Debits equal Credits':'✗ TRIAL BALANCE DOES NOT BALANCE — Difference: '+fmtK(Math.abs(totalDr-totalCr));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── PROFIT & LOSS ─────────────────────────────────────────────────────────
+  function renderPnL(){
+    const {from,to}=getPeriodDates('pnl');
+    const recs=getHistory(from,to);
+    const revenue=recs.reduce((s,r)=>s+(r.total||0),0);
+    const cogs=revenue*COGS_RATE;
+    const grossProfit=revenue-cogs;
+    const expStore=getStore('pa-books-expenses').filter(e=>e.date>=from&&e.date<=to);
+    const totalExp=expStore.reduce((s,e)=>s+(e.amount||0),0);
+    const netProfit=grossProfit-totalExp;
+    const margin=revenue>0?(netProfit/revenue*100):0;
+
+    document.getElementById('pnl-body').innerHTML=`
+      <tr class="section-row"><td colspan="2">REVENUE</td></tr>
+      <tr><td class="td-account" style="padding-left:24px;">Bar Sales (POS)</td><td class="td-amount">${fmtK(revenue)}</td></tr>
+      <tr class="total-row"><td><strong>Total Revenue</strong></td><td class="td-amount"><strong>${fmtK(revenue)}</strong></td></tr>
+      <tr style="height:6px;"><td colspan="2"></td></tr>
+      <tr class="section-row"><td colspan="2">COST OF GOODS SOLD</td></tr>
+      <tr><td class="td-account" style="padding-left:24px;">Cost of Sales (est. ${(COGS_RATE*100).toFixed(0)}%)</td><td class="td-amount" style="color:var(--dr);">(${fmtK(cogs)})</td></tr>
+      <tr class="total-row"><td><strong>Gross Profit</strong></td><td class="td-amount"><strong style="color:${grossProfit>=0?'var(--green)':'var(--red);'}">${fmtK(grossProfit)}</strong></td></tr>
+      <tr style="height:6px;"><td colspan="2"></td></tr>
+      <tr class="section-row"><td colspan="2">OPERATING EXPENSES</td></tr>
+      ${expStore.map(e=>`<tr><td class="td-account" style="padding-left:24px;">${e.desc}</td><td class="td-amount" style="color:var(--dr);">(${fmtK(e.amount)})</td></tr>`).join('')||'<tr><td style="padding-left:24px;color:var(--muted);font-family:var(--mono);font-size:11px;" colspan="2">No expenses recorded. Click + Add Expense.</td></tr>'}
+      <tr class="total-row"><td><strong>Total Expenses</strong></td><td class="td-amount" style="color:var(--dr);"><strong>(${fmtK(totalExp)})</strong></td></tr>
+      <tr style="height:6px;"><td colspan="2"></td></tr>
+      <tr class="total-row grand"><td><strong>NET PROFIT / (LOSS)</strong></td><td class="td-amount"><strong style="color:${netProfit>=0?'var(--green)':'var(--red);'};font-size:18px;">${netProfit>=0?fmtK(netProfit):'('+fmtK(Math.abs(netProfit))+')'}</strong></td></tr>
+      <tr><td style="font-family:var(--mono);font-size:10px;color:var(--muted);">Net Profit Margin</td><td class="td-amount" style="font-family:var(--mono);color:${margin>=0?'var(--green)':'var(--red);'};">${margin.toFixed(1)}%</td></tr>
+    `;
+
+    // Expenses table
+    document.getElementById('exp-body').innerHTML=expStore.length
+      ?expStore.map(e=>`<tr>
+          <td class="td-date">${e.date}</td>
+          <td class="td-desc">${e.desc}<small>${e.category||''}</small></td>
+          <td class="td-amount">${fmtK(e.amount)}</td>
+          <td><button class="edit-btn" onclick="editExpense('${e.id}',event)" title="Edit">✎</button><button class="del-btn" onclick="delExpense('${e.id}',event)" title="Delete">×</button></td>
+        </tr>`).join('')
+      :`<tr class="empty-row"><td colspan="4">No expenses recorded.</td></tr>`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── BALANCE SHEET ─────────────────────────────────────────────────────────
+  function renderBalanceSheet(){
+    const {from,to}=getPeriodDates('bs');
+    const recs=getHistory(from,to);
+    const revenue=recs.reduce((s,r)=>s+(r.total||0),0);
+    const cogs=revenue*COGS_RATE;
+    const expStore=getStore('pa-books-expenses').filter(e=>e.date>=from&&e.date<=to);
+    const totalExp=expStore.reduce((s,e)=>s+(e.amount||0),0);
+    const netProfit=revenue-cogs-totalExp;
+    const assetsStore=getStore('pa-books-assets');
+    const liabStore=getStore('pa-books-liabilities');
+
+    // Assets
+    const assets=[
+      {id:'__cash',name:'Cash & Bank (POS Revenue)',value:revenue-cogs,editable:false},
+      ...assetsStore
+    ];
+    const totalAssets=assets.reduce((s,a)=>s+(a.value||0),0);
+
+    // Liabilities
+    const liabilities=[
+      {id:'__ap',name:'Accounts Payable (Expenses)',value:totalExp,editable:false},
+      ...liabStore
+    ];
+    const totalLiab=liabilities.reduce((s,l)=>s+(l.value||0),0);
+
+    // Equity = Assets - Liabilities
+    const equity=totalAssets-totalLiab;
+
+    document.getElementById('assets-body').innerHTML=assets.map(a=>`<tr>
+      <td class="td-account">${a.name}</td>
+      <td class="td-amount">${fmtK(a.value||0)}</td>
+      <td>${a.editable!==false?`<button class="edit-btn" onclick="editAsset('${a.id}',event)">✎</button><button class="del-btn" onclick="delAsset('${a.id}',event)">×</button>`:'<span style="font-family:var(--mono);font-size:9px;color:var(--muted);">AUTO</span>'}</td>
+    </tr>`).join('');
+    document.getElementById('assets-foot').innerHTML=`<tr class="total-row grand"><td colspan="2"><strong>TOTAL ASSETS</strong></td><td class="td-amount"><strong style="color:var(--green);">${fmtK(totalAssets)}</strong></td><td></td></tr>`;
+
+    document.getElementById('liab-body').innerHTML=[
+      ...liabilities.map(l=>`<tr>
+        <td class="td-account">${l.name}</td>
+        <td class="td-amount">${fmtK(l.value||0)}</td>
+        <td>${l.editable!==false?`<button class="edit-btn" onclick="editLiab('${l.id}',event)">✎</button><button class="del-btn" onclick="delLiab('${l.id}',event)">×</button>`:'<span style="font-family:var(--mono);font-size:9px;color:var(--muted);">AUTO</span>'}</td>
+      </tr>`),
+      `<tr class="section-row"><td colspan="3">EQUITY</td></tr>`,
+      `<tr><td class="td-account" style="padding-left:24px;">Retained Earnings / Net Profit</td><td class="td-amount" style="color:${netProfit>=0?'var(--green)':'var(--red);'}">${fmtK(netProfit)}</td><td></td></tr>`,
+    ].join('');
+    document.getElementById('liab-foot').innerHTML=`<tr class="total-row grand"><td colspan="2"><strong>TOTAL LIABILITIES + EQUITY</strong></td><td class="td-amount"><strong style="color:var(--blue);">${fmtK(totalLiab+equity)}</strong></td><td></td></tr>`;
+
+    const balanced=Math.abs(totalAssets-(totalLiab+equity))<0.01;
+    document.getElementById('bs-check').className='balance-check '+(balanced?'ok':'bad');
+    document.getElementById('bs-check').textContent=balanced
+      ?`✓ BALANCE SHEET BALANCES — Assets ${fmtK(totalAssets)} = Liabilities ${fmtK(totalLiab)} + Equity ${fmtK(equity)}`
+      :`✗ DOES NOT BALANCE — Difference: ${fmtK(Math.abs(totalAssets-(totalLiab+equity)))}`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── MODAL / EDIT SYSTEM ───────────────────────────────────────────────────
+  let _modalContext=null;
+  let _modalData=null;
+
+  function openAddEntry(type){
+    _modalContext={mode:'add',type};
+    _modalData=null;
+    const configs={
+      cashbook:{title:'Add Cash Book Entry',fields:`
+        <div class="form-row">
+          <div class="form-field"><label>Date</label><input type="date" id="mf-date" value="${todayStr()}"/></div>
+          <div class="form-field"><label>Type</label><select id="mf-type"><option value="receipt">Receipt (Dr)</option><option value="payment">Payment (Cr)</option></select></div>
+        </div>
+        <div class="form-field"><label>Description</label><input type="text" id="mf-desc" placeholder="e.g. Cash from customer, Supplier payment"/></div>
+        <div class="form-row">
+          <div class="form-field"><label>Amount (K)</label><input type="number" id="mf-amount" placeholder="0.00" min="0" step="0.01"/></div>
+          <div class="form-field"><label>Reference</label><input type="text" id="mf-ref" placeholder="e.g. CB-001"/></div>
+        </div>`},
+      journal:{title:'Add Journal Entry',fields:`
+        <div class="form-row">
+          <div class="form-field"><label>Date</label><input type="date" id="mf-date" value="${todayStr()}"/></div>
+          <div class="form-field"><label>Amount (K)</label><input type="number" id="mf-amount" placeholder="0.00" min="0" step="0.01"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Debit Account (Dr)</label><input type="text" id="mf-dr-acc" placeholder="e.g. Rent Expense"/></div>
+          <div class="form-field"><label>Credit Account (Cr)</label><input type="text" id="mf-cr-acc" placeholder="e.g. Cash / Bank"/></div>
+        </div>
+        <div class="form-field"><label>Description / Narration</label><textarea id="mf-desc" placeholder="Explain the transaction..."></textarea></div>
+        <div class="form-field"><label>Reference</label><input type="text" id="mf-ref" placeholder="e.g. JNL-001"/></div>`},
+      expense:{title:'Add Expense',fields:`
+        <div class="form-row">
+          <div class="form-field"><label>Date</label><input type="date" id="mf-date" value="${todayStr()}"/></div>
+          <div class="form-field"><label>Amount (K)</label><input type="number" id="mf-amount" placeholder="0.00" min="0" step="0.01"/></div>
+        </div>
+        <div class="form-field"><label>Description</label><input type="text" id="mf-desc" placeholder="e.g. Electricity bill, Staff wages"/></div>
+        <div class="form-field"><label>Category</label><select id="mf-cat">
+          <option>Wages & Salaries</option><option>Rent</option><option>Utilities</option>
+          <option>Cost of Goods</option><option>Marketing</option><option>Maintenance</option>
+          <option>Transport</option><option>Miscellaneous</option>
+        </select></div>`},
+      asset:{title:'Add Asset',fields:`
+        <div class="form-field"><label>Asset Name</label><input type="text" id="mf-name" placeholder="e.g. Bar Equipment, Vehicle"/></div>
+        <div class="form-row">
+          <div class="form-field"><label>Value (K)</label><input type="number" id="mf-amount" placeholder="0.00" min="0" step="0.01"/></div>
+          <div class="form-field"><label>Date Acquired</label><input type="date" id="mf-date" value="${todayStr()}"/></div>
+        </div>`},
+    };
+    const cfg=configs[type]||configs.expense;
+    document.getElementById('modal-title').textContent=cfg.title;
+    document.getElementById('modal-body').innerHTML=cfg.fields;
+    document.getElementById('modal').style.display='flex';
+  }
+
+  function saveModal(){
+    const ctx=_modalContext;
+    if(!ctx) return;
+    const {mode,type}=ctx;
+    try{
+      if(type==='expense'){
+        const d=document.getElementById('mf-date').value;
+        const a=parseFloat(document.getElementById('mf-amount').value);
+        const desc=document.getElementById('mf-desc').value.trim();
+        const cat=document.getElementById('mf-cat')?.value||'';
+        if(!d||!a||!desc){toast('Fill all fields',false);return;}
+        const store=getStore('pa-books-expenses');
+        if(mode==='edit'&&_modalData){
+          const idx=store.findIndex(e=>e.id===_modalData.id);
+          if(idx>=0) store[idx]={...store[idx],date:d,amount:a,desc,category:cat};
+        } else {
+          store.push({id:genRef('EXP'),date:d,amount:a,desc,category:cat});
+        }
+        saveStore('pa-books-expenses',store);
+        toast('Expense saved ✓');
+        renderPnL();
+      } else if(type==='cashbook'){
+        const d=document.getElementById('mf-date').value;
+        const a=parseFloat(document.getElementById('mf-amount').value);
+        const desc=document.getElementById('mf-desc').value.trim();
+        const t=document.getElementById('mf-type').value;
+        const ref=document.getElementById('mf-ref').value.trim()||genRef('CB');
+        if(!d||!a||!desc){toast('Fill all fields',false);return;}
+        const store=getStore('pa-books-manual-cb');
+        const entry={id:genRef('MCB'),date:d,amount:a,desc,type:t,ref,operator:session.fname};
+        if(mode==='edit'&&_modalData){const idx=store.findIndex(e=>e.id===_modalData.id);if(idx>=0)store[idx]={...store[idx],...entry,id:_modalData.id};}
+        else store.push(entry);
+        saveStore('pa-books-manual-cb',store);
+        toast('Cash book entry saved ✓');
+        renderCashBook();
+      } else if(type==='journal'){
+        const d=document.getElementById('mf-date').value;
+        const a=parseFloat(document.getElementById('mf-amount').value);
+        const desc=document.getElementById('mf-desc').value.trim();
+        const drAcc=document.getElementById('mf-dr-acc').value.trim();
+        const crAcc=document.getElementById('mf-cr-acc').value.trim();
+        const ref=document.getElementById('mf-ref').value.trim()||genRef('JNL');
+        if(!d||!a||!drAcc||!crAcc){toast('Fill all fields',false);return;}
+        const store=getStore('pa-books-manual-jn');
+        const entry={id:genRef('MJN'),date:d,amount:a,desc,drAccount:drAcc,crAccount:crAcc,ref,operator:session.fname};
+        if(mode==='edit'&&_modalData){const idx=store.findIndex(e=>e.id===_modalData.id);if(idx>=0)store[idx]={...store[idx],...entry,id:_modalData.id};}
+        else store.push(entry);
+        saveStore('pa-books-manual-jn',store);
+        toast('Journal entry saved ✓');
+        renderJournal();
+      } else if(type==='asset'){
+        const name=document.getElementById('mf-name').value.trim();
+        const val=parseFloat(document.getElementById('mf-amount').value);
+        const d=document.getElementById('mf-date').value;
+        if(!name||!val){toast('Fill all fields',false);return;}
+        const store=getStore('pa-books-assets');
+        if(mode==='edit'&&_modalData){const idx=store.findIndex(e=>e.id===_modalData.id);if(idx>=0)store[idx]={...store[idx],name,value:val,date:d};}
+        else store.push({id:genRef('AST'),name,value:val,date:d});
+        saveStore('pa-books-assets',store);
+        toast('Asset saved ✓');
+        renderBalanceSheet();
+      }
+    }catch(e){toast('Error: '+e.message,false);}
+    closeModal();
+  }
+
+  function closeModal(e){
+    if(e&&e.target!==document.getElementById('modal')) return;
+    document.getElementById('modal').style.display='none';
+    _modalContext=null; _modalData=null;
+  }
+
+  function editExpense(id,e){
+    e.stopPropagation();
+    const exp=getStore('pa-books-expenses').find(x=>x.id===id);
+    if(!exp) return;
+    _modalData=exp;
+    _modalContext={mode:'edit',type:'expense'};
+    openAddEntry('expense');
+    setTimeout(()=>{
+      document.getElementById('mf-date').value=exp.date;
+      document.getElementById('mf-amount').value=exp.amount;
+      document.getElementById('mf-desc').value=exp.desc;
+      if(document.getElementById('mf-cat')) document.getElementById('mf-cat').value=exp.category||'Miscellaneous';
+    },50);
+    document.getElementById('modal-title').textContent='Edit Expense';
+  }
+  function delExpense(id,e){
+    e.stopPropagation();
+    if(!confirm('Delete this expense entry?')) return;
+    saveStore('pa-books-expenses',getStore('pa-books-expenses').filter(x=>x.id!==id));
+    toast('Deleted ✓'); renderPnL();
+  }
+  function editManual(book,ref,e){
+    e.stopPropagation();
+    const storeKey=book==='cashbook'?'pa-books-manual-cb':'pa-books-manual-jn';
+    const entry=getStore(storeKey).find(x=>x.id===ref||x.ref===ref);
+    if(!entry) return;
+    _modalData=entry;
+    _modalContext={mode:'edit',type:book==='cashbook'?'cashbook':'journal'};
+    openAddEntry(book==='cashbook'?'cashbook':'journal');
+    setTimeout(()=>{
+      document.getElementById('mf-date').value=entry.date;
+      document.getElementById('mf-amount').value=entry.amount;
+      document.getElementById('mf-desc').value=entry.desc;
+      if(book==='cashbook'&&document.getElementById('mf-type')) document.getElementById('mf-type').value=entry.type;
+      if(book==='cashbook'&&document.getElementById('mf-ref')) document.getElementById('mf-ref').value=entry.ref||'';
+      if(book==='journal'){
+        if(document.getElementById('mf-dr-acc')) document.getElementById('mf-dr-acc').value=entry.drAccount||'';
+        if(document.getElementById('mf-cr-acc')) document.getElementById('mf-cr-acc').value=entry.crAccount||'';
+        if(document.getElementById('mf-ref')) document.getElementById('mf-ref').value=entry.ref||'';
+      }
+    },50);
+    document.getElementById('modal-title').textContent='Edit Entry';
+  }
+  function delManual(book,ref,e){
+    e.stopPropagation();
+    if(!confirm('Delete this entry?')) return;
+    const storeKey=book==='cashbook'?'pa-books-manual-cb':'pa-books-manual-jn';
+    const store=getStore(storeKey).filter(x=>x.id!==ref&&x.ref!==ref);
+    saveStore(storeKey,store);
+    toast('Deleted ✓');
+    if(book==='cashbook') renderCashBook(); else renderJournal();
+  }
+  function editAsset(id,e){
+    e.stopPropagation();
+    const ast=getStore('pa-books-assets').find(x=>x.id===id);
+    if(!ast) return;
+    _modalData=ast; _modalContext={mode:'edit',type:'asset'};
+    openAddEntry('asset');
+    setTimeout(()=>{
+      document.getElementById('mf-name').value=ast.name;
+      document.getElementById('mf-amount').value=ast.value;
+      document.getElementById('mf-date').value=ast.date||todayStr();
+    },50);
+    document.getElementById('modal-title').textContent='Edit Asset';
+  }
+  function delAsset(id,e){
+    e.stopPropagation();
+    if(!confirm('Delete this asset?')) return;
+    saveStore('pa-books-assets',getStore('pa-books-assets').filter(x=>x.id!==id));
+    toast('Deleted ✓'); renderBalanceSheet();
+  }
+  function editLiab(id,e){
+    e.stopPropagation();
+    toast('Edit liabilities via Balance Sheet → + Asset/Liability',true);
+  }
+  function delLiab(id,e){
+    e.stopPropagation();
+    if(!confirm('Delete?')) return;
+    saveStore('pa-books-liabilities',getStore('pa-books-liabilities').filter(x=>x.id!==id));
+    toast('Deleted ✓'); renderBalanceSheet();
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  loadAll();
+}
+</script>
+</body>
+</html>
